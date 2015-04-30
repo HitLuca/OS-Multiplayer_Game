@@ -18,9 +18,17 @@
 
 int serverAuthFIFO;
 
-void encapsuleMessage(char *message);
-void parseMessage(char *rawMessage);
-void* userInput(void* arg);
+void* userInput(void* arg){
+	printf("Scrivi la tua risposta>");
+	char input[10];
+	scanf("%s",input);
+	write(serverAuthFIFO,input,strlen(input));
+}
+
+void encapsuleMessage(char *message)
+{
+	message[strlen(message)]='!';
+}
 
 int main()
 {
@@ -35,7 +43,7 @@ int main()
 	}
 	else	
 	{
-		//genero il nome della mia fifo univocamente utilizzando il PID e la parso
+		//genero il nome della mia fifo univocamente utilizzando il PID e la paro
 		char pid[100];
 		sprintf(pid,"%d",getpid());
 		char messageFIFOName[MAX_FIFO_NAME_SIZE] = CLIENT_MESSAGE_FIFO;
@@ -60,6 +68,7 @@ int main()
 			//aspetto una risposta
 			char answer[MAX_MESSAGE_SIZE];
 			read(inMessageFIFO,answer,MAX_MESSAGE_SIZE);
+			
 			
 			if(answer[0]=='0')	//se la risposta è negativa significa che il server è pieno
 			{
@@ -86,9 +95,9 @@ int main()
 					pthread_t bash;
 					char *question;
 					pthread_create (&bash, NULL, &userInput, &question);
+					char message[MAX_MESSAGE_SIZE];
 					
 					//mi metto in ascolto
-					char message[MAX_MESSAGE_SIZE];
 					printf("mi metto in ascolto\n");
 					if(read(inMessageFIFO,message,MAX_MESSAGE_SIZE))
 					{
@@ -111,30 +120,4 @@ int main()
 		}
 	}
 	return 0;
-}
-
-void encapsuleMessage(char *message)
-{
-	message[strlen(message)]='!';
-}
-
-void parseMessage(char *rawMessage)
-{
-	*strchr(rawMessage,'!')='\0';
-}
-
-void* userInput(void* arg)
-{
-	int serverAnswerFIFO = open(SERVER_ANSWER_FIFO,O_RDWR);
-	printf("Scrivi la tua risposta\n");
-	char input[MAX_MESSAGE_SIZE];
-
-	//Il client invia le risposte ad serverAnswerFIFO
-	while(1)
-	{
-		printf(">");
-		scanf("%s",input);
-		encapsuleMessage(input);
-		write(serverAnswerFIFO,input,strlen(input));
-	}
 }
