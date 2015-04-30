@@ -13,7 +13,7 @@
 #define CLIENT_MESSAGE_FIFO "/tmp/CMF"
 #define MAX_MESSAGE_SIZE 1000
 #define MAX_FIFO_NAME_SIZE 100
-
+#define MAX_COMMAND_SIZE 100
 #define MAX_CLIENTS 10
 
 #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
@@ -22,7 +22,7 @@ void parseMessage(char *rawMessage);
 void encapsuleMessage(char *message);
 
 void* authorizationThread(void* arg);
-
+void* bashThread(void*arg);
 
 int main(int argc,char **argv)
 {
@@ -39,6 +39,11 @@ int main(int argc,char **argv)
 		//Creo il thread con la parte di autorizzazione
 		pthread_t authorization;
 		pthread_create (&authorization, NULL, &authorizationThread, NULL);
+
+
+		//Creo il thread per i comandi utente
+		pthread_t bash;
+		pthread_create (&bash, NULL, &bashThread, NULL);
 
 		mkfifo(SERVER_ANSWER_FIFO,FILE_MODE);
 		int serverAnswerFIFO = open(SERVER_ANSWER_FIFO,O_RDWR);
@@ -94,12 +99,12 @@ void* authorizationThread(void* arg)
 		{
 			//Aggiungo il client alla lista
 			strcpy(clientList[actualClients],clientMessage);
-			/*printf("authThread: aggiorno la lista dei client\n");
+			printf("authThread: aggiorno la lista dei client\n");
 			int i;
 			for (i=0; i<=actualClients; i++)
 			{
 				printf("%s\n", clientList[i]);
-			}*/
+			}
 
 			strcpy(serverMessage, "1");
 			encapsuleMessage(serverMessage);
@@ -113,5 +118,29 @@ void* authorizationThread(void* arg)
 
 		write(clientMessageFIFO, serverMessage, strlen(serverMessage));
 	
+	}
+}
+
+void* bashThread(void*arg)
+{
+	char comando[MAX_COMMAND_SIZE];
+	printf("\e[1;1H\e[2J");
+	printf("Benvenuto nel terminale utente!\nDigita help per una lista dei comandi\n");
+	while(1)
+	{
+		printf(">");
+		scanf("%s", comando);
+		if (strcmp(comando, "help")==0)
+		{
+			printf("Lista comandi utente:\n");
+			printf("help: Richiama questo messaggio di aiuto\n");
+			printf("kick <utente>: Kick di <utente> dalla partita\n");
+			printf("question <question>: Invia una nuova domanda a tutti gli utenti\n");
+			printf("clear: Pulisce la schermata corrente\n");
+		}
+		else if (strcmp(comando, "clear")==0)
+		{
+			printf("\e[1;1H\e[2J");
+		}
 	}
 }

@@ -108,6 +108,7 @@ int main()
 						else 
 						{
 							//Allora ho una domanda e devo mostrarla in console
+							//Prima uccido il processo
 							if (pthread_cancel(bash)!=0)
 							{
 								printf("Impossibile terminare il thread bash :(\n");
