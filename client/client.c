@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <signal.h>
 
 #define SERVER_ANSWER_FIFO "/tmp/SANSF"
 #define SERVER_AUTHORIZATION_FIFO "/tmp/SAUTHF"
@@ -60,43 +61,65 @@ int main()
 			//aspetto una risposta
 			char answer[MAX_MESSAGE_SIZE];
 			read(inMessageFIFO,answer,MAX_MESSAGE_SIZE);
+			parseMessage(answer);
 			
-			if(answer[0]=='0')	//se la risposta è negativa significa che il server è pieno
+			if(strcmp(answer, "0")==0)	//se la risposta è negativa significa che il server è pieno
 			{
 				printf("Server Pieno\n");
 				return 0;
 			}
-			else if(answer[0]=='1')	//altrimenti setto i parametri e proseguo
+			else if(strcmp(answer, "1")==0)	//altrimenti setto i parametri e proseguo
 			{
 				printf("Connessione Riuscita\n");
-				
+
 				//provo ad aprire la FIFO delle risposte alle domande da inviare al server
-				int answerFIFO = open(SERVER_ANSWER_FIFO,O_RDWR);
+				int serverAnswerFIFO = open(SERVER_ANSWER_FIFO,O_RDWR);
 				
-				if(answerFIFO == -1)
+				if(serverAnswerFIFO == -1)
 				{
 					printf("Errore di connessione al server\n");
 					return 0;
 				}
+
+				//Componenti del thread bash
+				pthread_t bash;
+				char arg[MAX_MESSAGE_SIZE];
+
+				strcpy(arg, "[attesa domanda dal server]");
 				
+				pthread_create (&bash, NULL, &userInput, arg);
+
 				while (1)
 				{
-					printf("Entro nel loop\n");
-					//creo un nuovo thread a cui associo l'input dell'utente
-					pthread_t bash;
-					char *question;
-					pthread_create (&bash, NULL, &userInput, &question);
+					printf("Entro nel loop\n");	
 					
 					//mi metto in ascolto
 					char message[MAX_MESSAGE_SIZE];
 					printf("mi metto in ascolto\n");
 					if(read(inMessageFIFO,message,MAX_MESSAGE_SIZE))
 					{
+						parseMessage(message);
 						//se ricevo il messaggio di kick mi chiudo
-						if(message[0]=='k')
+						if(strcmp(message, "k")==0)
 						{
 							printf("Kicked by server\n");
 							return 0;
+						}
+						else 
+						{
+							//Allora ho una domanda e devo mostrarla in console
+							if (pthread_cancel(bash)!=0)
+							{
+								printf("Impossibile terminare il thread bash :(\n");
+							}
+
+							strcpy(arg, message);
+							printf("%s\n%s", arg,message);
+
+							//creo un nuovo thread a cui associo l'input dell'utente
+							pthread_create (&bash, NULL, &userInput, &arg);
+
+
 						}
 					}
 					else // altrimenti se ricevo un errore mi chiudo preventivamente
@@ -126,6 +149,7 @@ void parseMessage(char *rawMessage)
 void* userInput(void* arg)
 {
 	int serverAnswerFIFO = open(SERVER_ANSWER_FIFO,O_RDWR);
+	printf("La domanda è: %s\n", (char*) arg);
 	printf("Scrivi la tua risposta\n");
 	char input[MAX_MESSAGE_SIZE];
 

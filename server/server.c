@@ -14,6 +14,8 @@
 #define MAX_MESSAGE_SIZE 1000
 #define MAX_FIFO_NAME_SIZE 100
 
+#define MAX_CLIENTS 10
+
 #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
 void parseMessage(char *rawMessage);
@@ -71,13 +73,16 @@ void* authorizationThread(void* arg)
 	char clientMessage[MAX_MESSAGE_SIZE];
 	char serverMessage[MAX_MESSAGE_SIZE];
 
-	int maxPlayers=1;
-	int actualPlayers=0;
+	//Lista dei client con cui comunica il server
+	char clientList[MAX_CLIENTS][MAX_MESSAGE_SIZE];
+
+	int actualClients=0;
 
 	while(1)
 	{
 		read(serverAuthFIFO,clientMessage,MAX_MESSAGE_SIZE);
 		parseMessage(clientMessage);
+
 		printf("authThread: %s mi ha contattato\n", clientMessage);
 
 		//Creo il collegamento alla FIFO del client
@@ -85,11 +90,20 @@ void* authorizationThread(void* arg)
 		strcat(fifoPath,clientMessage);
 		int clientMessageFIFO = open(fifoPath,O_RDWR);
 		
-		if (actualPlayers<maxPlayers)
+		if (actualClients<MAX_CLIENTS)
 		{
+			//Aggiungo il client alla lista
+			strcpy(clientList[actualClients],clientMessage);
+			/*printf("authThread: aggiorno la lista dei client\n");
+			int i;
+			for (i=0; i<=actualClients; i++)
+			{
+				printf("%s\n", clientList[i]);
+			}*/
+
 			strcpy(serverMessage, "1");
 			encapsuleMessage(serverMessage);
-			actualPlayers++;
+			actualClients++;
 		}
 		else
 		{
@@ -100,6 +114,4 @@ void* authorizationThread(void* arg)
 		write(clientMessageFIFO, serverMessage, strlen(serverMessage));
 	
 	}
-
-	printf("authThread: Raggiunto il numero massimo di giocatori, termino");
 }
