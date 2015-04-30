@@ -15,14 +15,15 @@
 #define MAX_FIFO_NAME_SIZE 100
 #define MAX_COMMAND_SIZE 100
 #define MAX_CLIENTS 10
-
 #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
+
 
 void parseMessage(char *rawMessage);
 void encapsuleMessage(char *message);
 
 void* authorizationThread(void* arg);
 void* bashThread(void*arg);
+void* senderThread(void*arg);
 
 int main(int argc,char **argv)
 {
@@ -34,8 +35,6 @@ int main(int argc,char **argv)
 	}
 	else
 	{
-		printf("Sono l'unico server attivo\n");
-
 		//Creo il thread con la parte di autorizzazione
 		pthread_t authorization;
 		pthread_create (&authorization, NULL, &authorizationThread, NULL);
@@ -78,6 +77,9 @@ void* authorizationThread(void* arg)
 	char clientMessage[MAX_MESSAGE_SIZE];
 	char serverMessage[MAX_MESSAGE_SIZE];
 
+	//Array di argomenti da passare al sender (nomeFIFOclient e messaggio)
+	char argList[2][MAX_MESSAGE_SIZE];
+
 	//Lista dei client con cui comunica il server
 	char clientList[MAX_CLIENTS][MAX_MESSAGE_SIZE];
 
@@ -89,22 +91,12 @@ void* authorizationThread(void* arg)
 		parseMessage(clientMessage);
 
 		printf("authThread: %s mi ha contattato\n", clientMessage);
-
-		//Creo il collegamento alla FIFO del client
-		char fifoPath [MAX_FIFO_NAME_SIZE] = CLIENT_MESSAGE_FIFO;
-		strcat(fifoPath,clientMessage);
-		int clientMessageFIFO = open(fifoPath,O_RDWR);
 		
 		if (actualClients<MAX_CLIENTS)
 		{
 			//Aggiungo il client alla lista
 			strcpy(clientList[actualClients],clientMessage);
 			printf("authThread: aggiorno la lista dei client\n");
-			int i;
-			for (i=0; i<=actualClients; i++)
-			{
-				printf("%s\n", clientList[i]);
-			}
 
 			strcpy(serverMessage, "1");
 			encapsuleMessage(serverMessage);
@@ -116,9 +108,30 @@ void* authorizationThread(void* arg)
 			encapsuleMessage(serverMessage);
 		}
 
-		write(clientMessageFIFO, serverMessage, strlen(serverMessage));
-	
+		//Preparo gli argomenti del thread
+		strcpy(argList[0][0], clientMessage);
+		strcpy(argList[1][0], serverMessage);
+
+		pthread_t sender;
+		pthread_create (&sender, NULL, &senderThread, &argList);
 	}
+}
+
+void* senderThread(void*arg)
+{
+	/*printf("%s", (char*)arg[0]);
+	char arg1[MAX_MESSAGE_SIZE];
+	char arg2[MAX_MESSAGE_SIZE];
+	//strcpy(arg1, (char**)arg[0]);
+	//strcpy(arg2, (char*)arg[1]);
+	printf("arg1new: %s\n", arg1);
+	printf("arg2new: %s\n", arg2);
+
+	//Creo il collegamento alla FIFO del client
+	char fifoPath [MAX_FIFO_NAME_SIZE] = CLIENT_MESSAGE_FIFO;
+	strcat(fifoPath,arg1);
+	int clientMessageFIFO = open(fifoPath,O_RDWR);
+	write(clientMessageFIFO, arg2, strlen(arg2));*/
 }
 
 void* bashThread(void*arg)
