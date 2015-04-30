@@ -56,7 +56,7 @@ int main()
 		if(inMessageFIFO==-1)
 		{
 		printf("Errore di apertura FIFO\n");
-		return 2;
+		return 0;
 		}
 		
 		//mando un messaggio al server richiedendo l'autorizzazione e passandogli il mio pid
@@ -66,14 +66,14 @@ int main()
 		if(write(serverAuthFIFO,message,strlen(message)))
 		{
 			//aspetto una risposta
-			char *answer;
+			char answer[MAX_MESSAGE_SIZE];
 			read(inMessageFIFO,answer,MAX_MESSAGE_SIZE);
 			
 			
 			if(answer[0]=='0')	//se la risposta è negativa significa che il server è pieno
 			{
 				printf("Server Pieno\n");
-				return 3;
+				return 0;
 			}
 			else if(answer[0]=='1')	//altrimenti setto i parametri e proseguo
 			{
@@ -85,18 +85,20 @@ int main()
 				if(answerFIFO == -1)
 				{
 					printf("Errore di connessione al server\n");
-					return 4;
+					return 0;
 				}
 				
 				while (1)
 				{
+					printf("Entro nel loop\n");
 					//creo un nuovo thread a cui associo l'input dell'utente
 					pthread_t bash;
 					char *question;
 					pthread_create (&bash, NULL, &userInput, &question);
-					char *message;
+					char message[MAX_MESSAGE_SIZE];
 					
 					//mi metto in ascolto
+					printf("mi metto in ascolto\n");
 					if(read(inMessageFIFO,message,MAX_MESSAGE_SIZE))
 					{
 						//se ricevo il messaggio di kick mi chiudo
@@ -109,7 +111,7 @@ int main()
 					else // altrimenti se ricevo un errore mi chiudo preventivamente
 					{
 						printf("Errore in lettura messaggio server\n");
-						return 5;
+						return 0;
 					}
 				}
 			}
