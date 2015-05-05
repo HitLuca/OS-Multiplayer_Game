@@ -15,19 +15,24 @@
 #define MAX_FIFO_NAME_SIZE 100
 #define MAX_COMMAND_SIZE 100
 #define MAX_CLIENTS 10
+#define MAX_PID_LENGTH 15
+#define MAX_PARAMETERS_NUMBER 6
 #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
 //Array di argomenti da passare al sender (nomeFIFOclient e messaggio)
 //METTERE A POSTO WTF
-char argList[2][MAX_MESSAGE_SIZE];
 
-
-void parseMessage(char *rawMessage);
-void encapsuleMessage(char *message);
+typedef struct {
+	char** parameters;
+	int parameterCount;
+} Message;
 
 void* authorizationThread(void* arg);
 void* bashThread(void*arg);
 void* senderThread(void*arg);
+
+Message* parseMessage(char *message);
+
 
 int main(int argc,char **argv)
 {
@@ -69,6 +74,7 @@ void* authorizationThread(void* arg)
 	int serverAuthFIFO = open(SERVER_AUTHORIZATION_FIFO,O_RDWR);
 	char clientMessage[MAX_MESSAGE_SIZE];
 	char serverMessage[MAX_MESSAGE_SIZE];
+	
 
 	//Lista dei client con cui comunica il server TODO VA GLOBALE E PROTETTA CON UN SEMAFORO
 	char clientList[MAX_CLIENTS][MAX_MESSAGE_SIZE];
@@ -78,13 +84,21 @@ void* authorizationThread(void* arg)
 	while(1)
 	{
 		read(serverAuthFIFO,clientMessage,MAX_MESSAGE_SIZE);
-
-		//printf("authThread: %s mi ha contattato\n", clientMessage);
+		printf("authThread: Ho ricevuto %s \n",clientMessage);
 		
 		if (actualClients<MAX_CLIENTS)
 		{
 			//Aggiungo il client alla lista TODO PREVEDERE L'ASSEGNAZIONE E PASSAGGO DI USERNAME
-			strcpy(clientList[actualClients],clientMessage);
+			/*char *separator = strchr(clientMessage,'|');
+			*separator ='\0';
+			char *clientPid = (char*)malloc(sizeof(char)*(strlen(clientMessage)+1));
+			strcpy(clientPid,clientMessage);
+			separator++;
+			char *username = (char*)malloc(sizeof(char)*(strlen(separator)+1));
+			strcpy(username,separator);
+			printf("hai il pid %s e l'username %s\n",clientPid,username);*/
+			
+			Message *message = parseMessage(clientMessage);
 
 			//Definire e implementare il protocollo di risposta
 			strcpy(serverMessage, "1");
@@ -96,25 +110,42 @@ void* authorizationThread(void* arg)
 		}
 
 		//Preparo gli argomenti del thread
+		/*char** argList = malloc(2 * sizeof(char*));
+		argList[0]=(char *)malloc(MAX_MESSAGE_SIZE * sizeof(char));
+		argList[1]=(char *)malloc(MAX_MESSAGE_SIZE * sizeof(char));
+		
 		strcpy(argList[0], clientMessage);
 		strcpy(argList[1], serverMessage);
 
 
 		//TOCHECK non so se abbia senso creare un altro thread per questo... Parliamone
 		pthread_t sender;
-		pthread_create (&sender, NULL, &senderThread,  (void*)argList);
+		pthread_create (&sender, NULL, &senderThread,  (void*)argList);*/
+		
+		char fifoPath [MAX_FIFO_NAME_SIZE];
+		strcpy(fifoPath,CLIENT_MESSAGE_FIFO);
+		strcat(fifoPath,clientMessage);
+		
+		char answer[MAX_MESSAGE_SIZE]; //TODO definire protocollo risposta autorizzazione
+		strcpy(answer,"1");
+		
+		//scrivo la risposta al client
+		int clientMessageFIFO = open(fifoPath,O_RDWR);
+		write(clientMessageFIFO,answer, strlen(answer)+1);
 	}
 }
 
 void* senderThread(void*arg)
 {
 	//Creo il collegamento alla FIFO del client
-	char fifoPath [MAX_FIFO_NAME_SIZE] = CLIENT_MESSAGE_FIFO;
-
-	strcat(fifoPath,argList[0]);
+	char fifoPath [MAX_FIFO_NAME_SIZE];
+	strcpy(fifoPath,CLIENT_MESSAGE_FIFO);
+	strcat(fifoPath,((char**)arg)[0]);
+	printf("Scrivo sulla FIFO: %s\n",fifoPath);
 
 	int clientMessageFIFO = open(fifoPath,O_RDWR);
-	write(clientMessageFIFO, argList[1], strlen(argList[1]));
+	write(clientMessageFIFO,((char**)arg)[1], strlen(((char**)arg)[1])+1);
+	free(arg);
 }
 
 void* bashThread(void*arg)
@@ -132,11 +163,39 @@ void* bashThread(void*arg)
 			printf("help: Richiama questo messaggio di aiuto\n");
 			printf("kick <utente>: Kick di <utente> dalla partita\n");
 			printf("question <question>: Invia una nuova domanda a tutti gli utenti\n");
+			printf("list: Stampa la lista degli utenti connessi\n");
 			printf("clear: Pulisce la schermata corrente\n");
 		}
 		else if (strcmp(comando, "clear")==0)
 		{
 			printf("\e[1;1H\e[2J");
 		}
+		else
+		{
+			printf("%s:Comando non riconosciuto\n",comando);
+		}
 	}
+}
+
+Message* parseMessage(char *message)
+{
+	int count = 0;
+	char ** p = (char**)(malloc(sizeof(char*)*MAX_PARAMETERS_NUMBER));
+	int i;
+	char *last=message;
+	char *separator = strchr(message,'|');
+	while(separator!=NULL)
+	{
+		separator='\0';
+		char* parameter = (char*)malloc(separator-last+sizeof(char));
+		strcpy(parameter,last);
+		p[count] = parameter;
+		count++;
+		last=separator+1;
+		separator=strchr(separator+1,'|');
+	}
+	Message * m = (Message*) malloc(sizeof(Message));
+	m->parameters = p;
+	m->parameterCount = count-1;
+	return m;
 }

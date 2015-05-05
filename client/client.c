@@ -14,12 +14,15 @@
 #define CLIENT_MESSAGE_FIFO "/tmp/CMF"
 #define MAX_MESSAGE_SIZE 1000
 #define MAX_FIFO_NAME_SIZE 100
+#define MAX_USERNAME_LENGHT 20
+#define MIN_USERNAME_LENGHT 1
 
 #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
 int serverAuthFIFO;
 
 void* userInput(void* arg);
+int validateUsername(char* username);
 
 int main()
 {
@@ -50,9 +53,22 @@ int main()
 		return 0;
 		}
 		
-		//mando un messaggio al server richiedendo l'autorizzazione e passandogli il mio pid
+		//chiedo all'utente di inserire un username
+		char username[MAX_USERNAME_LENGHT];
+		int correctUsername=-1;
+		while(correctUsername==-1)
+		{
+			printf("Inserisci il tuo username> ");
+			scanf("%s",username);
+			correctUsername = validateUsername(username);
+		}
+		
+		//mando un messaggio al server richiedendo l'autorizzazione e passandogli il mio pid e il mio username
 		char message[MAX_MESSAGE_SIZE];
 		strcpy(message,pid);
+		strcat(message,"|");
+		strcat(message,username);
+		
 		if(write(serverAuthFIFO,message,strlen(message)+1))
 		{
 			//aspetto una risposta
@@ -147,4 +163,33 @@ void* userInput(void* arg)
 		scanf("%s",input);
 		write(serverAnswerFIFO,input,strlen(input)+1);
 	}
+}
+
+int validateUsername(char* username)
+{
+	printf("hai scelto %s\n",username);
+	if(strlen(username)<MIN_USERNAME_LENGHT)
+	{
+		printf("Errore: username troppo corto\n");
+		return -1;
+	}
+	else if(strlen(username)>MAX_USERNAME_LENGHT)
+	{
+		printf("Errore: username troppo lungo\n");
+		return -1;
+	}
+	else
+	{
+		int i;
+		for(i=0;i<strlen(username);i++)
+		{
+			if(!isalnum(username[i]))
+			{
+				printf("Errore: carattere %c non valido\n",username[i]);
+				return -1;
+			}
+		}
+		return 0;
+	}
+	
 }
