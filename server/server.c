@@ -57,8 +57,7 @@ int main(int argc,char **argv)
 		while (1) 
 		{
 			read(serverAnswerFIFO,message,MAX_MESSAGE_SIZE);
-			parseMessage(message);
-			//printf("answThread: Ho ricevuto %s nella FIFO risposte\n", message);
+			printf("answThread: Ho ricevuto %s nella FIFO risposte\n", message);
 		}
 		return 0;
 	}
@@ -109,9 +108,6 @@ void* authorizationThread(void* arg)
 
 void* senderThread(void*arg)
 {
-	printf("%s\n", argList[0]);
-	printf("%s\n", argList[1]);
-
 	//Creo il collegamento alla FIFO del client
 	char fifoPath [MAX_FIFO_NAME_SIZE] = CLIENT_MESSAGE_FIFO;
 

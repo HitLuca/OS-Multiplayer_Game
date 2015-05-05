@@ -19,8 +19,6 @@
 
 int serverAuthFIFO;
 
-void encapsuleMessage(char *message);
-void parseMessage(char *rawMessage);
 void* userInput(void* arg);
 
 int main()
@@ -60,7 +58,6 @@ int main()
 			//aspetto una risposta
 			char answer[MAX_MESSAGE_SIZE];
 			read(inMessageFIFO,answer,MAX_MESSAGE_SIZE);
-			parseMessage(answer);
 			
 			if(strcmp(answer, "0")==0)	//se la risposta è negativa significa che il server è pieno
 			{
@@ -97,9 +94,9 @@ int main()
 					printf("mi metto in ascolto\n");
 					if(read(inMessageFIFO,message,MAX_MESSAGE_SIZE))
 					{
-						parseMessage(message);
+						printf("Ho ricevuto: %s \n",message);
 						//se ricevo il messaggio di kick mi chiudo
-						if(strcmp(message, "k")==0)
+						if(message[0]=='k')
 						{
 							printf("Kicked by server\n");
 							return 0;
@@ -148,7 +145,6 @@ void* userInput(void* arg)
 	{
 		printf(">");
 		scanf("%s",input);
-		encapsuleMessage(input);
-		write(serverAnswerFIFO,input,strlen(input));
+		write(serverAnswerFIFO,input,strlen(input)+1);
 	}
 }
