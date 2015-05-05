@@ -64,16 +64,6 @@ int main(int argc,char **argv)
 	}
 }
 
-void parseMessage(char *rawMessage)
-{
-	*strchr(rawMessage,'!')='\0';
-}
-
-void encapsuleMessage(char *message)
-{
-	message[strlen(message)]='!';
-}
-
 void* authorizationThread(void* arg)
 {
 	//Avvio il monitoraggio delle autorizzazioni
@@ -81,7 +71,7 @@ void* authorizationThread(void* arg)
 	char clientMessage[MAX_MESSAGE_SIZE];
 	char serverMessage[MAX_MESSAGE_SIZE];
 
-	//Lista dei client con cui comunica il server
+	//Lista dei client con cui comunica il server TODO VA GLOBALE E PROTETTA CON UN SEMAFORO
 	char clientList[MAX_CLIENTS][MAX_MESSAGE_SIZE];
 
 	int actualClients=0;
@@ -89,30 +79,29 @@ void* authorizationThread(void* arg)
 	while(1)
 	{
 		read(serverAuthFIFO,clientMessage,MAX_MESSAGE_SIZE);
-		parseMessage(clientMessage);
 
 		//printf("authThread: %s mi ha contattato\n", clientMessage);
 		
 		if (actualClients<MAX_CLIENTS)
 		{
-			//Aggiungo il client alla lista
+			//Aggiungo il client alla lista TODO PREVEDERE L'ASSEGNAZIONE E PASSAGGO DI USERNAME
 			strcpy(clientList[actualClients],clientMessage);
-			//printf("authThread: aggiorno la lista dei client\n");
 
+			//Definire e implementare il protocollo di risposta
 			strcpy(serverMessage, "1");
-			encapsuleMessage(serverMessage);
 			actualClients++;
 		}
 		else
 		{
 			strcpy(serverMessage, "0");
-			encapsuleMessage(serverMessage);
 		}
 
 		//Preparo gli argomenti del thread
 		strcpy(argList[0], clientMessage);
 		strcpy(argList[1], serverMessage);
 
+
+		//TOCHECK non so se abbia senso creare un altro thread per questo... Parliamone
 		pthread_t sender;
 		pthread_create (&sender, NULL, &senderThread,  (void*)argList);
 	}

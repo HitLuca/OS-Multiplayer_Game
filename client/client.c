@@ -55,8 +55,7 @@ int main()
 		//mando un messaggio al server richiedendo l'autorizzazione e passandogli il mio pid
 		char message[MAX_MESSAGE_SIZE];
 		strcpy(message,pid);
-		encapsuleMessage(message);
-		if(write(serverAuthFIFO,message,strlen(message)))
+		if(write(serverAuthFIFO,message,strlen(message)+1))
 		{
 			//aspetto una risposta
 			char answer[MAX_MESSAGE_SIZE];
@@ -135,16 +134,6 @@ int main()
 		}
 	}
 	return 0;
-}
-
-void encapsuleMessage(char *message)
-{
-	message[strlen(message)]='!';
-}
-
-void parseMessage(char *rawMessage)
-{
-	*strchr(rawMessage,'!')='\0';
 }
 
 void* userInput(void* arg)
