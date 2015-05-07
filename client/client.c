@@ -16,13 +16,38 @@
 #define MAX_FIFO_NAME_SIZE 100
 #define MAX_USERNAME_LENGHT 20
 #define MIN_USERNAME_LENGHT 1
+#define MAX_QUESTION_SIZE 30
+#define MAX_QID_SIZE 4
 
 #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
-int serverAuthFIFO;
+typedef struct {
+	char** parameters;
+	int parameterCount;
+} Message;
+
+typedef struct {
+	char text[MAX_QUESTION_SIZE];
+	char id[MAX_QID_SIZE];
+} Question;
+
+typedef struct {
+	char* name;
+	char* id;
+	char* points;
+} ClientData;
 
 void* userInput(void* arg);
 int validateUsername(char* username);
+char* authRequestMessage(char* pid,char *name);
+int checkServerAuthResponse(Message* message);
+void initializeClientData(Message *message);
+
+Message* parseMessage(char *message);
+
+int serverAuthFIFO;
+Question currentQuestion;
+ClientData* clientData;
 
 int main()
 {
@@ -64,26 +89,27 @@ int main()
 		}
 		
 		//mando un messaggio al server richiedendo l'autorizzazione e passandogli il mio pid e il mio username
-		char message[MAX_MESSAGE_SIZE];
-		strcpy(message,pid);
-		strcat(message,"|");
-		strcat(message,username);
+		char *message = authRequestMessage(pid,username);
+		
 		
 		if(write(serverAuthFIFO,message,strlen(message)+1))
 		{
 			//aspetto una risposta
-			char answer[MAX_MESSAGE_SIZE];
-			read(inMessageFIFO,answer,MAX_MESSAGE_SIZE);
+			char answerBuffer[MAX_MESSAGE_SIZE];
+			read(inMessageFIFO,answerBuffer,MAX_MESSAGE_SIZE);
+			printf("%s\n",answerBuffer);
+			Message *answer = parseMessage(answerBuffer);
 			
-			if(strcmp(answer, "0")==0)	//se la risposta è negativa significa che il server è pieno
+			int answerResult = checkServerAuthResponse(answer);
+			
+			if(answerResult<0)
 			{
-				printf("Server Pieno\n");
-				return 0;
+				
+				printf("Errore %d\n",answerResult); //TODO gestire i codici di errore
+				return answerResult;
 			}
-			else if(strcmp(answer, "1")==0)	//altrimenti setto i parametri e proseguo
+			else
 			{
-				printf("Connessione Riuscita\n");
-
 				//provo ad aprire la FIFO delle risposte alle domande da inviare al server
 				int serverAnswerFIFO = open(SERVER_ANSWER_FIFO,O_RDWR);
 				
@@ -92,6 +118,15 @@ int main()
 					printf("Errore di connessione al server\n");
 					return 0;
 				}
+				
+				printf("Connessione Riuscita\n");
+				
+				//inizializzo le variabili
+				clientData = (ClientData*) malloc(sizeof(ClientData));
+				clientData->name=username;
+				initializeClientData(answer);
+				
+				printf("Il server mi ha assegnato l'id %s e %s punti\n",clientData->id,clientData->points);
 
 				//Componenti del thread bash
 				pthread_t bash;
@@ -193,3 +228,75 @@ int validateUsername(char* username)
 	}
 	
 }
+
+
+Message* parseMessage(char *message)
+{
+	//conto i parametri
+	int parameterCount = 1;
+	char *i = strchr(message,'|');
+	while(i!=NULL)
+	{
+		parameterCount++;
+		i++;
+		i=strchr(i,'|');
+	}
+	//alloco lo spazio necessario
+	char ** p = (char**)(malloc(sizeof(char*)*parameterCount));
+	char *last=message;
+	char *separator = strchr(message,'|');
+	int count = 0;
+	
+	//separo e salvo i parametri
+	while(separator!=NULL)
+	{
+		*separator='\0';
+		char* parameter = (char*)malloc((separator-last+1)*sizeof(char));
+		strcpy(parameter,last);
+		p[count] = parameter;
+		count++;
+		last=separator+1;
+		separator=strchr(separator+1,'|');
+	}
+	char* parameter = (char*)malloc((strlen(last)+1)*sizeof(char));
+	strcpy(parameter,last);
+	p[count] = parameter;
+	
+	//construisco la strurrura del messaggio e lo ritorno
+	Message * m = (Message*) malloc(sizeof(Message));
+	m->parameters = p;
+	m->parameterCount = parameterCount;
+	return m;
+}
+
+char* authRequestMessage(char* pid,char* name)
+{
+	char *message = (char*)malloc(sizeof(char)*(strlen(pid)+strlen(name)+2));
+	strcpy(message,pid);
+	strcat(message,"|");
+	strcat(message,name);
+	return message;
+}
+
+int checkServerAuthResponse(Message* message){
+	if(strcmp(message->parameters[0],"A")==0)
+	{
+		if(message->parameterCount==2)
+		{
+			return atoi(message->parameters[1]);
+		}
+		else if(message->parameterCount==5)
+		{
+			return 0;
+		}
+	}
+	return -1;
+}
+
+void initializeClientData(Message *message){
+	clientData->id=(char*)malloc(sizeof(char)*(strlen(message->parameters[1])+1));
+	strcpy(clientData->id,message->parameters[1]);
+	clientData->points=(char*)malloc(sizeof(char)*(strlen(message->parameters[4])+1));
+	strcpy(clientData->points,message->parameters[4]);
+}
+

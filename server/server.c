@@ -18,6 +18,7 @@
 #define MAX_PID_LENGTH 15
 #define MAX_PARAMETERS_NUMBER 6
 #define MAX_QUESTION_SIZE 30
+#define MAX_QID_SIZE 4
 #define QUESTION_ID 8
 #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
@@ -37,7 +38,7 @@ typedef struct {
 
 typedef struct {
 	char text[MAX_QUESTION_SIZE];
-	int id;
+	char id[MAX_QID_SIZE];
 } Question;
 
 void* authorizationThread(void* arg);
@@ -75,7 +76,7 @@ int main(int argc,char **argv)
 		connectedClientsNumber=0;
 		clientsMaxNumber=10; //TODO imposta il massimo da parametro
 		initializeClientData();
-		currentQuestion.id=0;
+		currentQuestion.id="0";
 		strcpy(currentQuestion.text,"3 + 2 = ?");
 
 		//Creo il thread per i comandi utente
@@ -284,10 +285,8 @@ void connectNewClient(int id,char* name,char* pid)
 char* authAcceptMessage(int id)
 {
 	char idc[3];
-	char idq[3];
 	char points[10];
 	sprintf(idc,"%d",id);
-	sprintf(idq,"%d",currentQuestion.id);
 	sprintf(points,"%d",clientData[id]->points);
 	char *answer = (char*)malloc(sizeof(char)*MAX_MESSAGE_SIZE);
 	strcpy(answer,"A|");
@@ -295,7 +294,7 @@ char* authAcceptMessage(int id)
 	strcat(answer,"|");
 	strcat(answer,currentQuestion.text);
 	strcat(answer,"|");
-	strcat(answer,idq);
+	strcat(answer,currentQuestion.id);
 	strcat(answer,"|");
 	strcat(answer,points);
 	return answer;
