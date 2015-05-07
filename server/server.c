@@ -17,6 +17,8 @@
 #define MAX_CLIENTS 10
 #define MAX_PID_LENGTH 15
 #define MAX_PARAMETERS_NUMBER 6
+#define MAX_QUESTION_SIZE 30
+#define QUESTION_ID 8
 #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
 //Array di argomenti da passare al sender (nomeFIFOclient e messaggio)
@@ -27,12 +29,33 @@ typedef struct {
 	int parameterCount;
 } Message;
 
+typedef struct {
+	char* name;
+	char* pid;
+	int points;
+} ClientData;
+
+typedef struct {
+	char text[MAX_QUESTION_SIZE];
+	int id;
+} Question;
+
 void* authorizationThread(void* arg);
 void* bashThread(void*arg);
 void* senderThread(void*arg);
+int checkClientRequest(Message *message);
+void initializeClientData();
+void connectNewClient(int id,char* name,char* pid);
+char* authAcceptMessage(int id);
+char* authRejectMessage(int error);
 
 Message* parseMessage(char *message);
 
+int connectedClientsNumber;
+int clientsMaxNumber;
+Question currentQuestion;
+
+ClientData** clientData;
 
 int main(int argc,char **argv)
 {
@@ -48,6 +71,12 @@ int main(int argc,char **argv)
 		pthread_t authorization;
 		pthread_create (&authorization, NULL, &authorizationThread, NULL);
 
+		
+		connectedClientsNumber=0;
+		clientsMaxNumber=10; //TODO imposta il massimo da parametro
+		initializeClientData();
+		currentQuestion.id=0;
+		strcpy(currentQuestion.text,"3 + 2 = ?");
 
 		//Creo il thread per i comandi utente
 		pthread_t bash;
@@ -74,64 +103,38 @@ void* authorizationThread(void* arg)
 	int serverAuthFIFO = open(SERVER_AUTHORIZATION_FIFO,O_RDWR);
 	char clientMessage[MAX_MESSAGE_SIZE];
 	char serverMessage[MAX_MESSAGE_SIZE];
+	char fifoPath [MAX_FIFO_NAME_SIZE];
 	
-
-	//Lista dei client con cui comunica il server TODO VA GLOBALE E PROTETTA CON UN SEMAFORO
-	char clientList[MAX_CLIENTS][MAX_MESSAGE_SIZE];
-
-	int actualClients=0;
-
+	char* answer;
+	
 	while(1)
 	{
+		strcpy(fifoPath,CLIENT_MESSAGE_FIFO);
 		read(serverAuthFIFO,clientMessage,MAX_MESSAGE_SIZE);
 		printf("authThread: Ho ricevuto %s \n",clientMessage);
+		Message *message = parseMessage(clientMessage);
 		
-		if (actualClients<MAX_CLIENTS)
+		strcat(fifoPath,message->parameters[0]);
+		
+		printf(" %s ha effettuato una richiesta di connessione\n",message->parameters[1]);
+		
+		//apro la fifo del client
+		int clientMessageFIFO = open(fifoPath,O_RDWR);
+		
+		int id=checkClientAuthRequest(message);
+		
+		if(id>=0)
 		{
-			//Aggiungo il client alla lista TODO PREVEDERE L'ASSEGNAZIONE E PASSAGGO DI USERNAME
-			/*char *separator = strchr(clientMessage,'|');
-			*separator ='\0';
-			char *clientPid = (char*)malloc(sizeof(char)*(strlen(clientMessage)+1));
-			strcpy(clientPid,clientMessage);
-			separator++;
-			char *username = (char*)malloc(sizeof(char)*(strlen(separator)+1));
-			strcpy(username,separator);
-			printf("hai il pid %s e l'username %s\n",clientPid,username);*/
-			
-			Message *message = parseMessage(clientMessage);
-
-			//Definire e implementare il protocollo di risposta
-			strcpy(serverMessage, "1");
-			actualClients++;
+			connectNewClient(id,message->parameters[1],message->parameters[0]);
+			answer=authAcceptMessage(id);
 		}
 		else
 		{
-			strcpy(serverMessage, "0");
+			answer=authRejectMessage(id);
 		}
-
-		//Preparo gli argomenti del thread
-		/*char** argList = malloc(2 * sizeof(char*));
-		argList[0]=(char *)malloc(MAX_MESSAGE_SIZE * sizeof(char));
-		argList[1]=(char *)malloc(MAX_MESSAGE_SIZE * sizeof(char));
-		
-		strcpy(argList[0], clientMessage);
-		strcpy(argList[1], serverMessage);
-
-
-		//TOCHECK non so se abbia senso creare un altro thread per questo... Parliamone
-		pthread_t sender;
-		pthread_create (&sender, NULL, &senderThread,  (void*)argList);*/
-		
-		char fifoPath [MAX_FIFO_NAME_SIZE];
-		strcpy(fifoPath,CLIENT_MESSAGE_FIFO);
-		strcat(fifoPath,clientMessage);
-		
-		char answer[MAX_MESSAGE_SIZE]; //TODO definire protocollo risposta autorizzazione
-		strcpy(answer,"1");
-		
-		//scrivo la risposta al client
-		int clientMessageFIFO = open(fifoPath,O_RDWR);
 		write(clientMessageFIFO,answer, strlen(answer)+1);
+		free(message);
+		free(answer);
 	}
 }
 
@@ -179,23 +182,131 @@ void* bashThread(void*arg)
 
 Message* parseMessage(char *message)
 {
-	int count = 0;
-	char ** p = (char**)(malloc(sizeof(char*)*MAX_PARAMETERS_NUMBER));
-	int i;
+	//conto i parametri
+	int parameterCount = 1;
+	char *i = strchr(message,'|');
+	while(i!=NULL)
+	{
+		parameterCount++;
+		i++;
+		i=strchr(i,'|');
+	}
+	//alloco lo spazio necessario
+	char ** p = (char**)(malloc(sizeof(char*)*parameterCount));
 	char *last=message;
 	char *separator = strchr(message,'|');
+	int count = 0;
+	
+	//separo e salvo i parametri
 	while(separator!=NULL)
 	{
-		separator='\0';
-		char* parameter = (char*)malloc(separator-last+sizeof(char));
+		*separator='\0';
+		char* parameter = (char*)malloc((separator-last+1)*sizeof(char));
 		strcpy(parameter,last);
 		p[count] = parameter;
 		count++;
 		last=separator+1;
 		separator=strchr(separator+1,'|');
 	}
+	char* parameter = (char*)malloc((strlen(last)+1)*sizeof(char));
+	strcpy(parameter,last);
+	p[count] = parameter;
+	
+	//construisco la strurrura del messaggio e lo ritorno
 	Message * m = (Message*) malloc(sizeof(Message));
 	m->parameters = p;
-	m->parameterCount = count-1;
+	m->parameterCount = parameterCount;
 	return m;
+}
+
+int checkClientAuthRequest(Message *message)
+{
+	if(message->parameterCount!=2)
+	{
+		return -2; //WRONG PARAMETER COUNT
+	}
+	else
+	{
+		if (connectedClientsNumber<clientsMaxNumber)
+		{
+			int i;
+			for(i=0;i<clientsMaxNumber;i++)
+			{
+				if(clientData[i]!=NULL)
+				{
+					if(strcmp(clientData[i]->name,message->parameters[1])==0)
+					{
+						return -4; //NAME ALREADY IN USE
+					}
+				}
+			}
+			for(i=0;i<clientsMaxNumber;i++)
+			{
+				if(clientData[i]==NULL)
+				{
+					/*clientNames[i]=(char*)malloc((srtlen(message->parameters[1])+1)*sizeof(char));
+					strcpy(clientNames[i],message->parameters[1]);
+					connectedClientsNumber++;*/
+					return i;
+				}
+			}
+			
+		}
+		else
+		{
+			return -3; //SERVER FULL
+		}
+	}
+}
+
+void initializeClientData()
+{
+	clientData = (ClientData**)malloc(sizeof(ClientData*)*clientsMaxNumber);
+	int i;
+	for(i=0;i<clientsMaxNumber;i++)
+	{
+		clientData[i]=NULL;
+	}
+}
+
+void connectNewClient(int id,char* name,char* pid)
+{
+	clientData[id]=(ClientData*)malloc(sizeof(ClientData));
+	clientData[id]->name=(char*)malloc(sizeof(char)*(strlen(name)+1));
+	strcpy(clientData[id]->name,name);
+	clientData[id]->pid=(char*)malloc(sizeof(char)*(strlen(pid)+1));
+	strcpy(clientData[id]->pid,pid);
+	clientData[id]->points=clientsMaxNumber-connectedClientsNumber;
+	connectedClientsNumber++;
+	printf("Ho allocato lo slot %d con il client %s che ha il pid %s e parte con %d punti, sono rimasti %d posti liberi\n",id,clientData[id]->name,clientData[id]->pid,clientData[id]->points,clientsMaxNumber-connectedClientsNumber);
+}
+
+char* authAcceptMessage(int id)
+{
+	char idc[3];
+	char idq[3];
+	char points[10];
+	sprintf(idc,"%d",id);
+	sprintf(idq,"%d",currentQuestion.id);
+	sprintf(points,"%d",clientData[id]->points);
+	char *answer = (char*)malloc(sizeof(char)*MAX_MESSAGE_SIZE);
+	strcpy(answer,"A|");
+	strcat(answer,idc);
+	strcat(answer,"|");
+	strcat(answer,currentQuestion.text);
+	strcat(answer,"|");
+	strcat(answer,idq);
+	strcat(answer,"|");
+	strcat(answer,points);
+	return answer;
+}
+
+char* authRejectMessage(int error)
+{
+	char errors[4];
+	sprintf(errors,"%d",error);
+	char *answer = (char*)malloc(sizeof(char)*MAX_MESSAGE_SIZE);
+	strcpy(answer,"A|");
+	strcat(answer,errors);
+	return answer;
 }
