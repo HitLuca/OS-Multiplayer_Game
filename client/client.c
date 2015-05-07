@@ -62,7 +62,7 @@ int main()
 	}
 	else	
 	{
-		//genero il nome della mia fifo univocamente utilizzando il PID e la parso
+		//genero il nome della mia fifo univocamente utilizzando il PID e la paro
 		char pid[100];
 		sprintf(pid,"%d",getpid());
 		char messageFIFOName[MAX_FIFO_NAME_SIZE] = CLIENT_MESSAGE_FIFO;
@@ -141,7 +141,6 @@ int main()
 					printf("Entro nel loop\n");	
 					
 					//mi metto in ascolto
-					char message[MAX_MESSAGE_SIZE];
 					printf("mi metto in ascolto\n");
 					if(read(inMessageFIFO,message,MAX_MESSAGE_SIZE))
 					{
@@ -183,6 +182,7 @@ int main()
 	}
 	return 0;
 }
+
 
 void* userInput(void* arg)
 {

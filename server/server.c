@@ -22,6 +22,7 @@
 #define QUESTION_ID 8
 #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 
+
 //Array di argomenti da passare al sender (nomeFIFOclient e messaggio)
 //METTERE A POSTO WTF
 
@@ -121,6 +122,7 @@ void* authorizationThread(void* arg)
 		
 		//apro la fifo del client
 		int clientMessageFIFO = open(fifoPath,O_RDWR);
+		write(clientMessageFIFO,"1schifoso",strlen("0schifoso"));
 		
 		int id=checkClientAuthRequest(message);
 		
