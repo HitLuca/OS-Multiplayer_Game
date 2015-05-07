@@ -8,96 +8,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#define SERVER_ANSWER_FIFO "/tmp/SANSF"
-#define SERVER_AUTHORIZATION_FIFO "/tmp/SAUTHF"
-#define CLIENT_MESSAGE_FIFO "/tmp/CMF"
-#define MAX_MESSAGE_SIZE 1000
-#define MAX_FIFO_NAME_SIZE 100
-#define MAX_COMMAND_SIZE 100
-#define MAX_CLIENTS 10
-#define MAX_PID_LENGTH 15
-#define MAX_PARAMETERS_NUMBER 6
-#define MAX_QUESTION_SIZE 30
-#define MAX_QID_SIZE 4
-#define QUESTION_ID 8
-#define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
-
-
-//Array di argomenti da passare al sender (nomeFIFOclient e messaggio)
-//METTERE A POSTO WTF
-
-typedef struct {
-	char** parameters;
-	int parameterCount;
-} Message;
-
-typedef struct {
-	char* name;
-	char* pid;
-	int points;
-} ClientData;
-
-typedef struct {
-	char text[MAX_QUESTION_SIZE];
-	char id[MAX_QID_SIZE];
-} Question;
-
-void* authorizationThread(void* arg);
-void* bashThread(void*arg);
-void* senderThread(void*arg);
-int checkClientRequest(Message *message);
-void initializeClientData();
-void connectNewClient(int id,char* name,char* pid);
-char* authAcceptMessage(int id);
-char* authRejectMessage(int error);
-
-Message* parseMessage(char *message);
-
-int connectedClientsNumber;
-int clientsMaxNumber;
-Question currentQuestion;
-
-ClientData** clientData;
-
-int main(int argc,char **argv)
-{
-	//Check se il server è gia avviato
-	if (mkfifo(SERVER_AUTHORIZATION_FIFO,FILE_MODE)!=0)
-	{
-		printf("Server gia presente\n");
-		return 0;
-	}
-	else
-	{
-		//Creo il thread con la parte di autorizzazione
-		pthread_t authorization;
-		pthread_create (&authorization, NULL, &authorizationThread, NULL);
-
-		
-		connectedClientsNumber=0;
-		clientsMaxNumber=10; //TODO imposta il massimo da parametro
-		initializeClientData();
-		currentQuestion.id="0";
-		strcpy(currentQuestion.text,"3 + 2 = ?");
-
-		//Creo il thread per i comandi utente
-		pthread_t bash;
-		pthread_create (&bash, NULL, &bashThread, NULL);
-
-		mkfifo(SERVER_ANSWER_FIFO,FILE_MODE);
-		int serverAnswerFIFO = open(SERVER_ANSWER_FIFO,O_RDWR);
-
-		//Il server legge le risposte da serverAnswerFIFO
-		char message[MAX_MESSAGE_SIZE];
-		//printf("answThread: In lettura:\n");
-		while (1) 
-		{
-			read(serverAnswerFIFO,message,MAX_MESSAGE_SIZE);
-			printf("answThread: Ho ricevuto %s nella FIFO risposte\n", message);
-		}
-		return 0;
-	}
-}
+#include "serverlib.h"
 
 void* authorizationThread(void* arg)
 {
@@ -181,45 +92,6 @@ void* bashThread(void*arg)
 			printf("%s:Comando non riconosciuto\n",comando);
 		}
 	}
-}
-
-Message* parseMessage(char *message)
-{
-	//conto i parametri
-	int parameterCount = 1;
-	char *i = strchr(message,'|');
-	while(i!=NULL)
-	{
-		parameterCount++;
-		i++;
-		i=strchr(i,'|');
-	}
-	//alloco lo spazio necessario
-	char ** p = (char**)(malloc(sizeof(char*)*parameterCount));
-	char *last=message;
-	char *separator = strchr(message,'|');
-	int count = 0;
-	
-	//separo e salvo i parametri
-	while(separator!=NULL)
-	{
-		*separator='\0';
-		char* parameter = (char*)malloc((separator-last+1)*sizeof(char));
-		strcpy(parameter,last);
-		p[count] = parameter;
-		count++;
-		last=separator+1;
-		separator=strchr(separator+1,'|');
-	}
-	char* parameter = (char*)malloc((strlen(last)+1)*sizeof(char));
-	strcpy(parameter,last);
-	p[count] = parameter;
-	
-	//construisco la strurrura del messaggio e lo ritorno
-	Message * m = (Message*) malloc(sizeof(Message));
-	m->parameters = p;
-	m->parameterCount = parameterCount;
-	return m;
 }
 
 int checkClientAuthRequest(Message *message)
