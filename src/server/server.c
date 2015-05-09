@@ -35,6 +35,12 @@ int main(int argc,char **argv)
 		strcpy(currentQuestion.id, "0");
 		strcpy(currentQuestion.text,"3 + 2 = ?");
 
+		//Setto la domanda e la sua risposta
+		questionAnswer.question=&currentQuestion;
+		questionAnswer.answer=5;
+
+		printf("La domanda attuale è %s e la sua risposta è %d\n", questionAnswer.question->text, questionAnswer.answer);
+
 		//Creo il thread per i comandi utente
 		pthread_t bash;
 		pthread_create (&bash, NULL, &bashThread, NULL);
@@ -49,6 +55,7 @@ int main(int argc,char **argv)
 		{
 			read(serverAnswerFIFO,message,MAX_MESSAGE_SIZE);
 			printf("answThread: Ho ricevuto %s nella FIFO risposte\n", message);
+			checkAnswer(message);
 		}
 		return 0;
 	}

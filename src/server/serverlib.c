@@ -33,7 +33,6 @@ void* authorizationThread(void* arg)
 		
 		//apro la fifo del client
 		int clientMessageFIFO = open(fifoPath,O_RDWR);
-		write(clientMessageFIFO,"1schifoso",strlen("0schifoso"));
 		
 		int id=checkClientAuthRequest(message);
 		
@@ -182,4 +181,17 @@ char* authRejectMessage(int error)
 	strcpy(answer,"A|");
 	strcat(answer,errors);
 	return answer;
+}
+
+void checkAnswer(char* message)
+{
+	int answer=atoi(message);
+	if (answer==questionAnswer.answer)
+	{
+		printf("La risposta %d è corretta\n", answer);
+	}
+	else
+	{
+		printf("La risposta %d è errata, la risposta corretta è %d\n", answer, questionAnswer.answer);
+	}
 }

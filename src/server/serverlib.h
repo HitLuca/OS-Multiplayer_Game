@@ -15,9 +15,15 @@ typedef struct {
 	int points;
 } ClientData;
 
+typedef struct {
+	Question* question;
+	int answer;
+}Answer;
+
 int connectedClientsNumber;
 int clientsMaxNumber;
 Question currentQuestion;
+Answer questionAnswer;
 ClientData** clientData;
 
 void* authorizationThread(void* arg);
