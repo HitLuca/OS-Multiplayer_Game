@@ -16,7 +16,6 @@ int main()
 	//provo ad aprire la fifo di autorizzazione del server
 	serverAuthFIFO = open(SERVER_AUTHORIZATION_FIFO,O_WRONLY);
 	
-	
 	if(serverAuthFIFO==-1 )	//se la fifo non è presente significa che non vi è nessun server
 	{
 		printf("Server non presente\n");
@@ -24,7 +23,7 @@ int main()
 	}
 	else	
 	{
-		//genero il nome della mia fifo univocamente utilizzando il PID e la paro
+		//genero il nome della mia fifo univocamente utilizzando il PID e faccio il paring
 		char pid[100];
 		sprintf(pid,"%d",getpid());
 		char messageFIFOName[MAX_FIFO_NAME_SIZE] = CLIENT_MESSAGE_FIFO;
