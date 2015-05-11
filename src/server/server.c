@@ -56,8 +56,11 @@ int main(int argc,char **argv)
 			read(serverAnswerFIFO,message,MAX_MESSAGE_SIZE);
 			printf("answThread: Ho ricevuto %s nella FIFO risposte\n", message);
 			Message* answer = parseMessage(message);
+			printf("Il client con ID %s ha risposto %s alla domanda con ID %s\n", answer->parameters[0], answer->parameters[2],  answer->parameters[1]);
+			
 			int result = checkAnswer(answer);
 			printf("result: %d\n", result);
+			
 			ClientData* client = getSender(answer);
 
 			if (result==1)

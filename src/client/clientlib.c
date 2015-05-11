@@ -10,19 +10,21 @@
 
 #include "clientlib.h"
 
-void* userInput(void* arg)
+void* userInput(void* arg)  //METTERE A POSTO QUESTO THREAD, NON VA BENE
 {
 	int serverAnswerFIFO = open(SERVER_ANSWER_FIFO,O_RDWR);
+
 	printf("La domanda è: %s\n", (char*) arg);
 	printf("Scrivi la tua risposta\n");
 	char input[MAX_MESSAGE_SIZE];
+	strcpy(currentQuestion.id, "0");  //SETTATO L'ID DI TUTTE LE DOMANDE A 0
 
 	//Il client invia le risposte ad serverAnswerFIFO
 	while(1)
 	{
 		printf(">");
 		scanf("%s",input);
-		write(serverAnswerFIFO,input,strlen(input)+1);
+		sendResponse(serverAnswerFIFO, input);
 	}
 }
 
@@ -84,4 +86,16 @@ void initializeClientData(Message *message){
 	strcpy(clientData->id,message->parameters[1]);
 	clientData->points=(char*)malloc(sizeof(char)*(strlen(message->parameters[4])+1));
 	strcpy(clientData->points,message->parameters[4]);
+}
+
+void sendResponse(int serverAnswerFIFO, char* answer)
+{
+	char* message= malloc(MAX_MESSAGE_SIZE*sizeof(char)); //<----- MALLOC FATTA A CASO, SETTARE I VALORI CORRETTI!
+	strcpy(message, clientData->id);
+	strcat(message, "|");
+	strcat(message, currentQuestion.id);
+	strcat(message, "|");
+	strcat(message, answer);
+	printf("SendResponse ha creato: %s\n", message);
+	write(serverAnswerFIFO,message,strlen(message)+1);
 }

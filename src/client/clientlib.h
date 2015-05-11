@@ -21,5 +21,6 @@ int validateUsername(char* username);
 char* authRequestMessage(char* pid,char *name);
 int checkServerAuthResponse(Message* message);
 void initializeClientData(Message *message);
+void sendResponse(int serverAnswerFIFO, char* answer);
 
 #endif

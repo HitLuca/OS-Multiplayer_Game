@@ -92,8 +92,8 @@ int main()
 				//Componenti del thread bash
 				pthread_t bash;
 				char arg[MAX_MESSAGE_SIZE];
-
-				strcpy(arg, "[attesa domanda dal server]");
+				printf("Sono in attesa di una domanda dal server...\n");
+				read(inMessageFIFO,arg,MAX_MESSAGE_SIZE); //E' NECESSARIO INVIARE UNA FAKE DA TERMINALE
 				
 				pthread_create (&bash, NULL, &userInput, arg);
 
