@@ -38,7 +38,7 @@ void* authorizationThread(void* arg)
 		
 		if(id>=0)
 		{
-			connectNewClient(id,message->parameters[1],message->parameters[0]);
+			connectNewClient(id,message->parameters[1],clientMessageFIFO);
 			answer=authAcceptMessage(id);
 		}
 		else
@@ -49,19 +49,6 @@ void* authorizationThread(void* arg)
 		free(message);
 		free(answer);
 	}
-}
-
-void* senderThread(void*arg)
-{
-	//Creo il collegamento alla FIFO del client
-	char fifoPath [MAX_FIFO_NAME_SIZE];
-	strcpy(fifoPath,CLIENT_MESSAGE_FIFO);
-	strcat(fifoPath,((char**)arg)[0]);
-	printf("Scrivo sulla FIFO: %s\n",fifoPath);
-
-	int clientMessageFIFO = open(fifoPath,O_RDWR);
-	write(clientMessageFIFO,((char**)arg)[1], strlen(((char**)arg)[1])+1);
-	free(arg);
 }
 
 void* bashThread(void*arg)
@@ -143,16 +130,15 @@ void initializeClientData()
 	}
 }
 
-void connectNewClient(int id,char* name,char* pid)
+void connectNewClient(int id,char* name,int fifoID)
 {
 	clientData[id]=(ClientData*)malloc(sizeof(ClientData));
 	clientData[id]->name=(char*)malloc(sizeof(char)*(strlen(name)+1));
 	strcpy(clientData[id]->name,name);
-	clientData[id]->pid=(char*)malloc(sizeof(char)*(strlen(pid)+1));
-	strcpy(clientData[id]->pid,pid);
+	clientData[id]->fifoID=fifoID;
 	clientData[id]->points=clientsMaxNumber-connectedClientsNumber;
 	connectedClientsNumber++;
-	printf("Ho allocato lo slot %d con il client %s che ha il pid %s e parte con %d punti, sono rimasti %d posti liberi\n",id,clientData[id]->name,clientData[id]->pid,clientData[id]->points,clientsMaxNumber-connectedClientsNumber);
+	printf("Ho allocato lo slot %d con il client %s che ha fifoID %d e parte con %d punti, sono rimasti %d posti liberi\n",id,clientData[id]->name,clientData[id]->fifoID,clientData[id]->points,clientsMaxNumber-connectedClientsNumber);
 }
 
 char* authAcceptMessage(int id)
@@ -165,9 +151,9 @@ char* authAcceptMessage(int id)
 	strcpy(answer,"A|");
 	strcat(answer,idc);
 	strcat(answer,"|");
-	strcat(answer,currentQuestion.text);
+	strcat(answer,questions[currentQuestion].question->text);
 	strcat(answer,"|");
-	strcat(answer,currentQuestion.id);
+	strcat(answer,questions[currentQuestion].question->id);
 	strcat(answer,"|");
 	strcat(answer,points);
 	return answer;
@@ -183,15 +169,60 @@ char* authRejectMessage(int error)
 	return answer;
 }
 
-void checkAnswer(char* message)
+int checkAnswer(Message* message)
 {
-	int answer=atoi(message);
-	if (answer==questionAnswer.answer)
+	int questionIndex = atoi(message->parameters[1]);
+	if (strcmp(questions[questionIndex].answer, message->parameters[2])==0)
 	{
-		printf("La risposta %d è corretta\n", answer);
+		if (questionIndex==currentQuestion)
+		{
+			return 1; //Risposta giusta domanda corrente
+		}
+		else
+		{
+			return 3; //Risposta giusta domanda vecchia
+		}
 	}
 	else
 	{
-		printf("La risposta %d è errata, la risposta corretta è %d\n", answer, questionAnswer.answer);
+		return 2; //Risposta sbagliata
 	}
+}
+
+char* buildResult(Message* message, ClientData* player, int cwt)
+{
+	char castedPoints[POINT_SIZE];
+	sprintf(castedPoints, "%d", player->points);
+	char* idQuestion = message->parameters[1];
+	char* answer = malloc((6+strlen(idQuestion)+strlen(castedPoints))*sizeof(char));
+	strcpy(answer, "R|");
+	strcat(answer, idQuestion);
+	strcat(answer, "|");
+	strcat(answer, castedPoints);
+	strcat(answer, "|");
+	if (cwt==1)
+	{
+		strcat(answer, "C");
+	}
+	else if(cwt==2)
+	{
+		strcat(answer, "W");
+	}
+	else
+	{
+		strcat(answer, "T");
+	}
+	return answer;
+}
+
+ClientData* getSender(Message* message)
+{
+	int id = atoi(message->parameters[0]);
+	return clientData[id];
+}
+
+void sendResponse(int fifoID, char* response)
+{
+	write(fifoID,response, strlen(response)+1);
+	free(response);
 }

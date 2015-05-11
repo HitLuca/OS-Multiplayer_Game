@@ -11,28 +11,31 @@
 
 typedef struct {
 	char* name;
-	char* pid;
+	int fifoID;
 	int points;
 } ClientData;
 
 typedef struct {
 	Question* question;
-	int answer;
-}Answer;
+	char* answer;
+}QuestionData;
 
 int connectedClientsNumber;
 int clientsMaxNumber;
-Question currentQuestion;
-Answer questionAnswer;
+int currentQuestion;
+QuestionData questions[QUESTION_ID];
 ClientData** clientData;
 
 void* authorizationThread(void* arg);
 void* bashThread(void*arg);
-void* senderThread(void*arg);
+//void* senderThread(void*arg);
 int checkClientRequest(Message *message);
 void initializeClientData();
-void connectNewClient(int id,char* name,char* pid);
+void connectNewClient(int id,char* name,int fifoID);
 char* authAcceptMessage(int id);
 char* authRejectMessage(int error);
-
+int checkAnswer(Message* message);
+char* buildResult(Message* message, ClientData* player, int cwt);
+ClientData* getSender(Message* message);
+void sendResponse(int fifoID, char* response);
 #endif

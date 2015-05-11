@@ -32,14 +32,14 @@ int main(int argc,char **argv)
 		connectedClientsNumber=0;
 		clientsMaxNumber=10; //TODO imposta il massimo da parametro
 		initializeClientData();
-		strcpy(currentQuestion.id, "0");
-		strcpy(currentQuestion.text,"3 + 2 = ?");
+		currentQuestion=0;
 
-		//Setto la domanda e la sua risposta
-		questionAnswer.question=&currentQuestion;
-		questionAnswer.answer=5;
-
-		printf("La domanda attuale è %s e la sua risposta è %d\n", questionAnswer.question->text, questionAnswer.answer);
+		Question* question = (Question*)malloc(sizeof(Question));
+		strcpy(question->id, "0");
+		strcpy(question->text,"3 + 2 = ?");
+		questions[currentQuestion].question=question;
+		questions[currentQuestion].answer=(char*)malloc(sizeof(char)*5);
+		strcpy(questions[currentQuestion].answer,"5");
 
 		//Creo il thread per i comandi utente
 		pthread_t bash;
@@ -55,7 +55,25 @@ int main(int argc,char **argv)
 		{
 			read(serverAnswerFIFO,message,MAX_MESSAGE_SIZE);
 			printf("answThread: Ho ricevuto %s nella FIFO risposte\n", message);
-			checkAnswer(message);
+			Message* answer = parseMessage(message);
+			int result = checkAnswer(answer);
+			printf("result: %d\n", result);
+			ClientData* client = getSender(answer);
+
+			if (result==1)
+			{
+				client->points++;
+
+				//Nuova domanda
+			}
+			else if (result==2)
+			{
+				client->points--;
+			}
+
+			char* response=buildResult(answer, client, result);//!!!!!!
+			sendResponse(client->fifoID, response);
+			free(answer); //<---------------------
 		}
 		return 0;
 	}

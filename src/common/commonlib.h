@@ -9,6 +9,7 @@
 #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 #define MAX_QID_SIZE 4
 #define MAX_QUESTION_SIZE 30
+#define POINT_SIZE 4
 
 typedef struct {
 	char** parameters;
