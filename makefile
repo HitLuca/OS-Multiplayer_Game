@@ -22,7 +22,8 @@ FAIL_STRING = $(NO_COLOR)[$(ERROR_COLOR)FAIL$(NO_COLOR)]
 
 
 default:
-	clear
+	@clear
+	@clear
 	@echo "                     "$(WARN_COLOR)"################################"$(NO_COLOR)
 	@echo "                     "$(WARN_COLOR)"# Progetto Sistemi Operativi 1 #"$(NO_COLOR)
 	@echo "                     "$(WARN_COLOR)"################################"$(NO_COLOR)
@@ -31,6 +32,12 @@ default:
 	@echo "                        "$(OK_COLOR)"Simonetto "$(NO_COLOR)"| "$(OK_COLOR)"Federici"$(NO_COLOR)
 	@echo "                             "$(OK_COLOR)"Luca "$(NO_COLOR)"| "$(OK_COLOR)"Marco"$(NO_COLOR)
 	@echo "                           "$(OK_COLOR)"166540 "$(NO_COLOR)"| "$(OK_COLOR)"165183"$(NO_COLOR)
+	@echo
+	@echo
+	@echo Descrizione progetto:
+	@echo "    Gioco multiplayer locale in cui un server invia operazioni" 
+	@echo "    matematiche ai client e ne aspetta le risposte assegnando "
+	@echo "    o togliendo punti in base alla loro correttezza"
 	@echo
 	@echo
 	@echo Opzioni makefile

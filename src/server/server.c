@@ -31,9 +31,17 @@ int main(int argc,char **argv)
 		{	
 			clientsMaxNumber = atoi(argv[1]);
 		}
+		else
+		{
+			clientsMaxNumber = CLIENTS_MAX_NUMBER;
+		}
 		if (argv[2]!=0)
 		{	
 			winPoints = atoi(argv[2]);
+		}
+		else
+		{
+			winPoints = WIN_POINTS;
 		}
 
 		//Creo il thread con la parte di autorizzazione
