@@ -54,8 +54,8 @@ void check_side(int argc, char** argv) {
 
 
 void server_side(int argc, char** argv) {
-    int max=0;
-    int win=0;
+    char max[2]="0";
+    char win[2]="0";
     int opt=0;
 
     static struct option server_options[] = {
@@ -66,9 +66,9 @@ void server_side(int argc, char** argv) {
     int long_index =1;
     while ((opt = getopt_long(argc, argv,"mw:", server_options, &long_index )) != -1) {
         switch (opt) {
-            case 'm' : max = atoi(optarg);
+            case 'm' : strcpy(max, optarg);
                 break;
-            case 'w' : win = atoi(optarg);
+            case 'w' : strcpy(win, optarg);
                 break;
             default: 
                 exit(EXIT_FAILURE);
@@ -83,6 +83,6 @@ void client_side() {
 }
 
 void print_usage() {
-printf("Usage for server: startApplication --server --max n --win m (--max and --win optional)\n");
-printf("Usage for client: startApplication --client\n");
+    printf("Usage for server: startApplication --server --max n --win m (--max and --win optional)\n");
+    printf("Usage for client: startApplication --client\n");
 } 

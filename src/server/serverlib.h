@@ -22,13 +22,13 @@ typedef struct {
 
 int connectedClientsNumber;
 int clientsMaxNumber;
+int winPoints;
 int currentQuestion;
 QuestionData questions[QUESTION_ID];
 ClientData** clientData;
 
 void* authorizationThread(void* arg);
 void* bashThread(void*arg);
-//void* senderThread(void*arg);
 int checkClientRequest(Message *message);
 void initializeClientData();
 void connectNewClient(int id,char* name,int fifoID);

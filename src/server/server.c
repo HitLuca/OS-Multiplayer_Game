@@ -24,15 +24,23 @@ int main(int argc,char **argv)
 	}
 	else
 	{
+		//Setto le variabili incluse max e win
+		connectedClientsNumber=0;
+		currentQuestion=0;
+		if (argv[1]!=0)
+		{	
+			clientsMaxNumber = atoi(argv[1]);
+		}
+		if (argv[2]!=0)
+		{	
+			winPoints = atoi(argv[2]);
+		}
+
 		//Creo il thread con la parte di autorizzazione
 		pthread_t authorization;
 		pthread_create (&authorization, NULL, &authorizationThread, NULL);
 
-		
-		connectedClientsNumber=0;
-		clientsMaxNumber=10; //TODO imposta il massimo da parametro
 		initializeClientData();
-		currentQuestion=0;
 
 		Question* question = (Question*)malloc(sizeof(Question));
 		strcpy(question->id, "0");
