@@ -6,7 +6,7 @@ COMMON=src/common
 SERVER=src/server
 CLIENT=src/client
 
-OBJECTS=serverlib.o clientlib.o commonlib.o client.o server.o
+OBJECTS=serverlib.o clientlib.o commonlib.o client.o server.o startGame.o
 
 CFLAGS=-pthread
 
@@ -61,6 +61,7 @@ objects: bin_dir $(OBJECTS)
 	@echo $(NOTIFY_STRING) Compilazione files oggetto
 	$(CC) $(CFLAGS) bin/server.o bin/serverlib.o bin/commonlib.o -o bin/server
 	$(CC) $(CFLAGS) bin/client.o bin/clientlib.o bin/commonlib.o -o bin/client
+	$(CC) $(CFLAGS) bin/startGame.o -o bin/startGame
 
 commonlib.o:
 	$(CC) -c $(COMMON)/commonlib.c -o bin/commonlib.o
@@ -77,5 +78,7 @@ clientlib.o:
 client.o:
 	$(CC) -c $(CLIENT)/client.c -o bin/client.o
 
+startGame.o:
+	$(CC) -c $(COMMON)/startGame.c -o bin/startGame.o
 clean:
 	rm bin/*.o
