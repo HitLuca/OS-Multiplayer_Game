@@ -16,6 +16,16 @@
 
 int main(int argc,char **argv)
 {
+	
+	struct sigaction sa;
+	sa.sa_handler = &handler;
+	  
+	sigaction (SIGKILL, &sa, NULL);
+	sigaction (SIGABRT, &sa, NULL);
+	sigaction (SIGQUIT, &sa, NULL);
+	sigaction (SIGINT, &sa, NULL);
+	sigaction (SIGSEGV, &sa, NULL);
+	
 	//Check se il server è gia avviato
 	if (mkfifo(SERVER_AUTHORIZATION_FIFO,FILE_MODE)!=0)
 	{
@@ -48,43 +58,49 @@ int main(int argc,char **argv)
 		pthread_create (&bash, NULL, &bashThread, NULL);
 
 		mkfifo(SERVER_ANSWER_FIFO,FILE_MODE);
-		int serverAnswerFIFO = open(SERVER_ANSWER_FIFO,O_RDWR);
+		serverAnswerFIFO = open(SERVER_ANSWER_FIFO,O_RDWR);
 
 		//Il server legge le risposte da serverAnswerFIFO
-		char message[MAX_MESSAGE_SIZE];
+		char message[MAX_MESSAGE_SIZE*clientsMaxNumber];
 		//printf("answThread: In lettura:\n");
 		while (1) 
 		{
-			read(serverAnswerFIFO,message,MAX_MESSAGE_SIZE);
+			int size=read(serverAnswerFIFO,message,MAX_MESSAGE_SIZE*clientsMaxNumber);
 			printf("answThread: Ho ricevuto %s nella FIFO risposte\n", message);
-			Message* answer = parseMessage(message);
-			printf("Il client con ID %s ha risposto %s alla domanda con ID %s\n", answer->parameters[0], answer->parameters[2],  answer->parameters[1]);
-			
-			int result = checkAnswer(answer);
-			printf("result: %d\n", result);
-			
-			ClientData* client = getSender(answer);
+			Message **messages=parseMessages(message,size);
+			int i=0;
+			while(messages[i]!=NULL)
+			{
+				Message* answer = messages[i];
+				i++;
+				printf("Il client con ID %s ha risposto %s alla domanda con ID %s\n", answer->parameters[0], answer->parameters[2],  answer->parameters[1]);
+				
+				int result = checkAnswer(answer);
+				printf("result: %d\n", result);
+				
+				ClientData* client = getSender(answer);
 
-			if (result==1)
-			{
-				client->points++;
-				sendResponse(client->fifoID, buildResult(answer, client, result));
-				//Nuova domanda
-				GenerateNewQuestion();
-				BroadcastQuestion();
-			}
-			else if (result==2)
-			{
-				client->points--;
-				sendResponse(client->fifoID, buildResult(answer, client, result));
-			}
-			else
-			{
-				sendResponse(client->fifoID, buildResult(answer, client, result));
-			}
+				if (result==1)
+				{
+					client->points++;
+					sendResponse(client->fifoID, buildResult(answer, client, result));
+					//Nuova domanda
+					GenerateNewQuestion();
+					BroadcastQuestion();
+				}
+				else if (result==2)
+				{
+					client->points--;
+					sendResponse(client->fifoID, buildResult(answer, client, result));
+				}
+				else
+				{
+					sendResponse(client->fifoID, buildResult(answer, client, result));
+				}
 
-			
-			free(answer); //<---------------------
+				
+				free(answer); //<---------------------7
+			}
 		}
 		return 0;
 	}

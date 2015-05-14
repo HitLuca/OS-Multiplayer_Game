@@ -13,6 +13,16 @@
 
 int main()
 {
+	struct sigaction sa;
+	sa.sa_handler = &handler;
+	  
+	sigaction (SIGKILL, &sa, NULL);
+	sigaction (SIGABRT, &sa, NULL);
+	sigaction (SIGQUIT, &sa, NULL);
+	sigaction (SIGINT, &sa, NULL);
+	
+	connected=0;
+	
 	//provo ad aprire la fifo di autorizzazione del server
 	serverAuthFIFO = open(SERVER_AUTHORIZATION_FIFO,O_WRONLY);
 	
@@ -26,11 +36,11 @@ int main()
 		//genero il nome della mia fifo univocamente utilizzando il PID e faccio il paring
 		char pid[100];
 		sprintf(pid,"%d",getpid());
-		char messageFIFOName[MAX_FIFO_NAME_SIZE] = CLIENT_MESSAGE_FIFO;
+		strcpy(messageFIFOName, CLIENT_MESSAGE_FIFO);
 		strcat(messageFIFOName,pid);
 		
 		mkfifo(messageFIFOName,FILE_MODE);
-		int inMessageFIFO = open(messageFIFOName,O_RDWR);
+		inMessageFIFO = open(messageFIFOName,O_RDWR);
 	
 		//se l'apertura non va a buon fine stampo un errore
 		if(inMessageFIFO==-1)
@@ -40,12 +50,15 @@ int main()
 		}
 		
 		//chiedo all'utente di inserire un username
-		char username[MAX_USERNAME_LENGHT];
+		char* username=(char*)malloc(sizeof(char)*MAX_USERNAME_LENGHT);
+		size_t size=MAX_USERNAME_LENGHT;
 		int correctUsername=-1;
 		while(correctUsername==-1)
 		{
 			printf("Inserisci il tuo username> ");
-			scanf("%s",username);
+			getline(&username,&size,stdin);
+			strchr(username,'\n')[0]='\0';
+			fflush(stdin);
 			correctUsername = validateUsername(username);
 		}
 		
@@ -65,8 +78,8 @@ int main()
 			
 			if(answerResult<0)
 			{
-				
 				printf("Errore %d\n",answerResult); //TODO gestire i codici di errore
+				deallocResources();
 				return answerResult;
 			}
 			else
@@ -77,12 +90,14 @@ int main()
 				if(serverAnswerFIFO == -1)
 				{
 					printf("Errore di connessione al server\n");
+					deallocResources();
 					return 0;
 				}
 				
 				printf("Connessione Riuscita\n");
 				
 				//inizializzo le variabili
+				connected=1;
 				clientData = (ClientData*) malloc(sizeof(ClientData));
 				clientData->name=username;
 				initializeClientData(answer);
@@ -108,7 +123,7 @@ int main()
 					int size = read(inMessageFIFO,rawMessages,MAX_MESSAGE_SIZE*MAX_CONCURRENT_MESSAGES);
 					if(size>0)
 					{
-						printf("Ho ricevuto: %s  di dimensione %d\n",rawMessages,size);
+						//printf("Ho ricevuto: %s  di dimensione %d\n",rawMessages,size);
 						
 						Message** messageList = parseMessages(rawMessages,size); 
 						int i=0;
@@ -117,58 +132,74 @@ int main()
 						{
 							Message* message = messageList[i];
 							i++;
-							//se ricevo il messaggio di kick mi chiudo
-							if(message->parameters[0][0]=='K')
+							
+							if(strchr(message->parameters[0],'K')!=NULL) //messaggio di kick
 							{
-								printf("Kicked by server\n");
+								printf("\nEspulso dal server\n");
+								deallocResources();
 								return 0;
 							}
-							else 
+							else if(strchr(message->parameters[0],'D')!=NULL) //server chiuso
 							{
-								//controllo se mi ha inviato una nuova domanda o una risultato
-								if(strchr(message->parameters[0],'R')!=NULL) //esito di una risposta inviata
+								printf("\nIl server e' stato chiuso\n");
+								deallocResources();
+								return 0;
+							}
+							else if(strchr(message->parameters[0],'W')!=NULL) //risposta sbagliata
+							{
+								printf("-Risposta Sbagliata!\n");
+								printf("-Ora hai %s punti\n",message->parameters[2]);
+								pthread_mutex_unlock(&mutex);
+							}
+							else if(strchr(message->parameters[0],'C')!=NULL) //risposta giusta
+							{
+								printf("-Risposta Corretta!\n");
+								printf("-Ora hai %s punti\n",message->parameters[2]);
+							}
+							else if(strchr(message->parameters[0],'T')!=NULL) //risposta giusta ma in ritardo
+							{
+								printf("-Qualcuno ha risposto correttamente prima di te!\n");
+								printf("-Ora hai %s punti\n",message->parameters[2]);
+							}
+							else if(strchr(message->parameters[0],'Q')!=NULL) //nuova domanda
+							{
+								setNewQuestion(message);
+								if(waitingForUserInput==1) //se il thread è bloccato in attesa di una risposta dall utente
 								{
-									if(DisplayResult(message)==0)
+									printf("\n");
+									waitingForUserInput=0;
+									if (pthread_cancel(bash)!=0)//lo chiudo
 									{
-										//sblocco il thread di bash
-										pthread_mutex_unlock(&mutex);
+										printf("Impossibile terminare il thread bash :(\n");
 									}
+									//e lo ricreo
+									pthread_create (&bash, NULL, &userInput, &arg);
 								}
-								else if(strchr(message->parameters[0],'Q')!=NULL) //nuova domanda
+								else //altrimenti lo sblocco semplicemente
 								{
-									setNewQuestion(message);
-									if(waitingForUserInput==1)
-									{
-										waitingForUserInput=0;
-										if (pthread_cancel(bash)!=0)
-										{
-											printf("Impossibile terminare il thread bash :(\n");
-										}
-										//creo un nuovo thread a cui associo l'input dell'utente
-										pthread_create (&bash, NULL, &userInput, &arg);
-									}
-									else
-									{
-										pthread_mutex_unlock(&mutex);
-									}
-								}
-								else
-								{
-									printf("Messaggio sconosciuto ricevuto: %s \n",rawMessages);
-									return 0;
+									pthread_mutex_unlock(&mutex);
 								}
 							}
+							else
+							{
+								printf("Messaggio sconosciuto ricevuto: %s \n",rawMessages);
+								deallocResources();
+								return 0;
+							}
+						
 						}
 						
 					}
 					else // altrimenti se ricevo un errore mi chiudo preventivamente
 					{
 						printf("Errore in lettura messaggio server\n");
+						deallocResources();
 						return 0;
 					}
 				}
 			}
 		} else {
+			deallocResources();
 			printf("Errore richiesta autorizzazione\n");
 		}
 	}

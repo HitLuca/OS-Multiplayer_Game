@@ -21,6 +21,14 @@ typedef struct {
 	char* answer;
 }QuestionData;
 
+typedef struct {
+	char* operation;
+	char** parameters;
+	int parameterCount;
+}Command;
+
+int serverAuthFIFO;
+int serverAnswerFIFO;
 int connectedClientsNumber;
 int clientsMaxNumber;
 int currentQuestion;
@@ -29,7 +37,6 @@ ClientData** clientData;
 
 void* authorizationThread(void* arg);
 void* bashThread(void*arg);
-//void* senderThread(void*arg);
 int checkClientRequest(Message *message);
 void initializeClientData();
 void connectNewClient(int id,char* name,int fifoID);
@@ -42,4 +49,12 @@ void sendResponse(int fifoID, char* response);
 void InitializeQuestions();
 void GenerateNewQuestion();
 void BroadcastQuestion();
+void disconnectClient(int id);
+void handler ();
+void broadcastServerClosed();
+void kick(char* name);
+Command* parseCommand(char* command);
+void listCommand();
+void sendCustomizedQuestion(char* question,char* answer);
+
 #endif

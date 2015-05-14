@@ -14,11 +14,14 @@ typedef struct {
 } ClientData;
 
 int serverAuthFIFO;
+int inMessageFIFO;
+char messageFIFOName[MAX_FIFO_NAME_SIZE];
 Question currentQuestion;
 ClientData* clientData;
 int serverAnswerFIFO;
 pthread_mutex_t mutex;
 int waitingForUserInput;
+int connected;
 
 void* userInput(void* arg);
 int validateUsername(char* username);
@@ -28,6 +31,7 @@ void initializeClientData(Message *message);
 void sendResponse(int serverAnswerFIFO, char* answer);
 void initializeQuestion(Message *message);
 void setNewQuestion(Message *message);
-int DisplayResult(Message* message);
+void deallocResources();
+void handler();
 
 #endif
