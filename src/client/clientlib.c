@@ -12,19 +12,19 @@
 
 void* userInput(void* arg)  //METTERE A POSTO QUESTO THREAD, NON VA BENE
 {
-	int serverAnswerFIFO = open(SERVER_ANSWER_FIFO,O_RDWR);
-
-	printf("La domanda è: %s\n", (char*) arg);
-	printf("Scrivi la tua risposta\n");
-	char input[MAX_MESSAGE_SIZE];
-	strcpy(currentQuestion.id, "0");  //SETTATO L'ID DI TUTTE LE DOMANDE A 0
-
 	//Il client invia le risposte ad serverAnswerFIFO
+	char input[MAX_MESSAGE_SIZE];
 	while(1)
 	{
-		printf(">");
+		printf("La domanda e' %s\n", currentQuestion.text);
+		printf("La tua risposta>");
+		waitingForUserInput=1;
 		scanf("%s",input);
+		fflush(stdin);
 		sendResponse(serverAnswerFIFO, input);
+		waitingForUserInput=0;
+		//mi metto in attesa di una risposta
+		pthread_mutex_lock(&mutex);
 	}
 }
 
@@ -98,4 +98,40 @@ void sendResponse(int serverAnswerFIFO, char* answer)
 	strcat(message, answer);
 	printf("SendResponse ha creato: %s\n", message);
 	write(serverAnswerFIFO,message,strlen(message)+1);
+}
+
+void initializeQuestion(Message *message)
+{
+	strcpy(currentQuestion.text,message->parameters[2]);
+	strcpy(currentQuestion.id,message->parameters[3]);
+}
+
+
+void setNewQuestion(Message *message)
+{
+	strcpy(currentQuestion.text,message->parameters[2]);
+	strcpy(currentQuestion.id,message->parameters[1]);
+}
+
+int DisplayResult(Message* message)
+{
+	int result=-1;
+	if(message->parameters[3][0]=='C')
+	{
+		printf("-Risposta Corretta!\n");
+		result = 1;
+	}
+	else if(message->parameters[3][0]=='W')
+	{
+		printf("-Risposta Sbagliata!\n");
+		result = 0;
+	}
+	else if(message->parameters[3][0]=='T')
+	{
+		printf("-La risposta e' corretta ma qualcuno ha risposto prima di te!\n");
+		result = 2;
+	}
+	
+	printf("-Ora hai %s punti\n",message->parameters[2]);
+	return result;
 }

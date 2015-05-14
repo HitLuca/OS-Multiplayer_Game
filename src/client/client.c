@@ -72,7 +72,7 @@ int main()
 			else
 			{
 				//provo ad aprire la FIFO delle risposte alle domande da inviare al server
-				int serverAnswerFIFO = open(SERVER_ANSWER_FIFO,O_RDWR);
+				serverAnswerFIFO = open(SERVER_ANSWER_FIFO,O_RDWR);
 				
 				if(serverAnswerFIFO == -1)
 				{
@@ -86,49 +86,80 @@ int main()
 				clientData = (ClientData*) malloc(sizeof(ClientData));
 				clientData->name=username;
 				initializeClientData(answer);
+				initializeQuestion(answer);
 				
 				printf("Il server mi ha assegnato l'id %s e %s punti\n",clientData->id,clientData->points);
 
 				//Componenti del thread bash
 				pthread_t bash;
 				char arg[MAX_MESSAGE_SIZE];
-				printf("Sono in attesa di una domanda dal server...\n");
-				read(inMessageFIFO,arg,MAX_MESSAGE_SIZE); //E' NECESSARIO INVIARE UNA FAKE DA TERMINALE
 				
 				pthread_create (&bash, NULL, &userInput, arg);
-
+				
+				char rawMessages[MAX_MESSAGE_SIZE];
+				
+				//setto il mutex a 0
+				pthread_mutex_lock(&mutex);
+				waitingForUserInput=0;
+				
 				while (1)
 				{
-					printf("Entro nel loop\n");	
-					
 					//mi metto in ascolto
-					printf("mi metto in ascolto\n");
-					if(read(inMessageFIFO,message,MAX_MESSAGE_SIZE))
+					int size = read(inMessageFIFO,rawMessages,MAX_MESSAGE_SIZE*MAX_CONCURRENT_MESSAGES);
+					if(size>0)
 					{
-						printf("Ho ricevuto: %s \n",message);
-						//se ricevo il messaggio di kick mi chiudo
-						if(message[0]=='k')
+						printf("Ho ricevuto: %s  di dimensione %d\n",rawMessages,size);
+						
+						Message** messageList = parseMessages(rawMessages,size); 
+						int i=0;
+						
+						while(messageList[i]!=NULL)
 						{
-							printf("Kicked by server\n");
-							return 0;
-						}
-						else 
-						{
-							//Allora ho una domanda e devo mostrarla in console
-							//Prima uccido il processo
-							if (pthread_cancel(bash)!=0)
+							Message* message = messageList[i];
+							i++;
+							//se ricevo il messaggio di kick mi chiudo
+							if(message->parameters[0][0]=='K')
 							{
-								printf("Impossibile terminare il thread bash :(\n");
+								printf("Kicked by server\n");
+								return 0;
 							}
-
-							strcpy(arg, message);
-							printf("%s\n%s", arg,message);
-
-							//creo un nuovo thread a cui associo l'input dell'utente
-							pthread_create (&bash, NULL, &userInput, &arg);
-
-
+							else 
+							{
+								//controllo se mi ha inviato una nuova domanda o una risultato
+								if(strchr(message->parameters[0],'R')!=NULL) //esito di una risposta inviata
+								{
+									if(DisplayResult(message)==0)
+									{
+										//sblocco il thread di bash
+										pthread_mutex_unlock(&mutex);
+									}
+								}
+								else if(strchr(message->parameters[0],'Q')!=NULL) //nuova domanda
+								{
+									setNewQuestion(message);
+									if(waitingForUserInput==1)
+									{
+										waitingForUserInput=0;
+										if (pthread_cancel(bash)!=0)
+										{
+											printf("Impossibile terminare il thread bash :(\n");
+										}
+										//creo un nuovo thread a cui associo l'input dell'utente
+										pthread_create (&bash, NULL, &userInput, &arg);
+									}
+									else
+									{
+										pthread_mutex_unlock(&mutex);
+									}
+								}
+								else
+								{
+									printf("Messaggio sconosciuto ricevuto: %s \n",rawMessages);
+									return 0;
+								}
+							}
 						}
+						
 					}
 					else // altrimenti se ricevo un errore mi chiudo preventivamente
 					{

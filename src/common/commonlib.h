@@ -22,4 +22,5 @@ typedef struct {
 } Question;
 
 Message* parseMessage(char *message);
+Message** parseMessages(char *messages,int size);
 #endif

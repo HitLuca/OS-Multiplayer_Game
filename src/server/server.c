@@ -33,13 +33,15 @@ int main(int argc,char **argv)
 		clientsMaxNumber=10; //TODO imposta il massimo da parametro
 		initializeClientData();
 		currentQuestion=0;
-
-		Question* question = (Question*)malloc(sizeof(Question));
+		
+		InitializeQuestions();
+		GenerateNewQuestion();
+		/*Question* question = (Question*)malloc(sizeof(Question));
 		strcpy(question->id, "0");
 		strcpy(question->text,"3 + 2 = ?");
 		questions[currentQuestion].question=question;
 		questions[currentQuestion].answer=(char*)malloc(sizeof(char)*5);
-		strcpy(questions[currentQuestion].answer,"5");
+		strcpy(questions[currentQuestion].answer,"5");*/
 
 		//Creo il thread per i comandi utente
 		pthread_t bash;
@@ -66,16 +68,22 @@ int main(int argc,char **argv)
 			if (result==1)
 			{
 				client->points++;
-
+				sendResponse(client->fifoID, buildResult(answer, client, result));
 				//Nuova domanda
+				GenerateNewQuestion();
+				BroadcastQuestion();
 			}
 			else if (result==2)
 			{
 				client->points--;
+				sendResponse(client->fifoID, buildResult(answer, client, result));
+			}
+			else
+			{
+				sendResponse(client->fifoID, buildResult(answer, client, result));
 			}
 
-			char* response=buildResult(answer, client, result);//!!!!!!
-			sendResponse(client->fifoID, response);
+			
 			free(answer); //<---------------------
 		}
 		return 0;

@@ -48,3 +48,31 @@ Message* parseMessage(char *message)
 	m->parameterCount = parameterCount;
 	return m;
 }
+
+Message** parseMessages(char *rawMessages,int size){
+	//Conto il numero di separatori
+	int separator=1;
+	int i;
+	char* start=rawMessages;
+	for(i=0;i<size;i++)
+	{
+		if(rawMessages[i]=='\0')
+		{
+			separator++;
+		}
+	}
+
+	Message **messages =(Message**)malloc(sizeof(Message*)*separator);
+	char* position=rawMessages;
+	int j=0;
+	for(i=0;i<size;)
+	{
+		position+=i;
+		i+=(int)strlen(position);
+		i++;
+		messages[j]=parseMessage(position);
+		j++;
+	}
+	messages[j]=NULL;
+	return messages;
+}

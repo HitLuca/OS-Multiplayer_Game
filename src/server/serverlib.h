@@ -8,6 +8,7 @@
 #define MAX_PID_LENGTH 15
 #define MAX_PARAMETERS_NUMBER 6
 #define QUESTION_ID 8
+#define MAX_QUESTION_NUM 100
 
 typedef struct {
 	char* name;
@@ -38,4 +39,7 @@ int checkAnswer(Message* message);
 char* buildResult(Message* message, ClientData* player, int cwt);
 ClientData* getSender(Message* message);
 void sendResponse(int fifoID, char* response);
+void InitializeQuestions();
+void GenerateNewQuestion();
+void BroadcastQuestion();
 #endif

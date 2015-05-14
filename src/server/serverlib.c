@@ -23,31 +23,38 @@ void* authorizationThread(void* arg)
 	while(1)
 	{
 		strcpy(fifoPath,CLIENT_MESSAGE_FIFO);
-		read(serverAuthFIFO,clientMessage,MAX_MESSAGE_SIZE);
+		int size = read(serverAuthFIFO,clientMessage,MAX_MESSAGE_SIZE);
 		printf("authThread: Ho ricevuto %s \n",clientMessage);
-		Message *message = parseMessage(clientMessage);
-		
-		strcat(fifoPath,message->parameters[0]);
-		
-		printf(" %s ha effettuato una richiesta di connessione\n",message->parameters[1]);
-		
-		//apro la fifo del client
-		int clientMessageFIFO = open(fifoPath,O_RDWR);
-		
-		int id=checkClientAuthRequest(message);
-		
-		if(id>=0)
+		Message **messages=parseMessages(clientMessage,size);
+		int i=0;
+		while(messages[i]!=NULL)
 		{
-			connectNewClient(id,message->parameters[1],clientMessageFIFO);
-			answer=authAcceptMessage(id);
+			Message *message = messages[i];
+			i++;
+			
+			strcat(fifoPath,message->parameters[0]);
+			
+			printf(" %s ha effettuato una richiesta di connessione\n",message->parameters[1]);
+			
+			//apro la fifo del client
+			int clientMessageFIFO = open(fifoPath,O_RDWR);
+			
+			int id=checkClientAuthRequest(message);
+			
+			if(id>=0)
+			{
+				connectNewClient(id,message->parameters[1],clientMessageFIFO);
+				answer=authAcceptMessage(id);
+			}
+			else
+			{
+				answer=authRejectMessage(id);
+			}
+			write(clientMessageFIFO,answer, strlen(answer)+1);
+			free(message);
+			free(answer);
 		}
-		else
-		{
-			answer=authRejectMessage(id);
-		}
-		write(clientMessageFIFO,answer, strlen(answer)+1);
-		free(message);
-		free(answer);
+		free(messages);
 	}
 }
 
@@ -226,3 +233,81 @@ void sendResponse(int fifoID, char* response)
 	write(fifoID,response, strlen(response)+1);
 	free(response);
 }
+
+void InitializeQuestions()
+{
+	currentQuestion=QUESTION_ID;
+	srand(time(NULL));
+}
+
+void GenerateNewQuestion(){
+	currentQuestion=(currentQuestion+1)%QUESTION_ID;
+	
+	if(questions[currentQuestion].question!=NULL)
+	{
+		free(questions[currentQuestion].question);
+	}
+	if(questions[currentQuestion].answer!=NULL)
+	{
+		free(questions[currentQuestion].answer);
+	}
+	
+	char nums1[10];
+	char nums2[10];
+	char *answs=(char*)malloc(11*sizeof(char));
+	int num1,num2,answ;
+	char op[2];
+	
+	num1=rand()%MAX_QUESTION_NUM;
+	num2=rand()%MAX_QUESTION_NUM;
+	
+	//TODO OPTION WITH OTHER OPERATIONS
+	op[0]='+';
+	op[1]='\0';
+	
+	sprintf(nums1,"%d",num1);
+	sprintf(nums2,"%d",num2);
+	
+	char newText[MAX_QUESTION_SIZE];
+	strcpy(newText,nums1);
+	strcat(newText," ");
+	strcat(newText,op);
+	strcat(newText," ");
+	strcat(newText,nums2);
+	strcat(newText," = ?");
+	
+	char newId[MAX_QID_SIZE];
+	sprintf(newId,"%d",currentQuestion);
+	
+	if(strcmp(op,"+")==0) //TODO add other operations
+	{
+		answ=num1+num2;
+	}
+	
+	sprintf(answs,"%d",answ);
+	
+	Question* newQuestion = (Question*) malloc(sizeof(Question));
+	strcpy(newQuestion->id,newId);
+	strcpy(newQuestion->text,newText);
+	
+	questions[currentQuestion].question=newQuestion;
+	questions[currentQuestion].answer=answs;
+	printf("Ho generato la domanda %s\n",newText);
+}
+
+void BroadcastQuestion(){
+	int i;
+	char newQuestionMessage [MAX_MESSAGE_SIZE];
+	strcpy(newQuestionMessage,"Q|");
+	strcat(newQuestionMessage,questions[currentQuestion].question->id);
+	strcat(newQuestionMessage,"|");
+	strcat(newQuestionMessage,questions[currentQuestion].question->text);
+	for(i=0;i<clientsMaxNumber;i++){
+		if(clientData[i]!=NULL)
+		{
+			write(clientData[i]->fifoID,newQuestionMessage,strlen(newQuestionMessage)+1);
+		}	
+	}
+}
+
+
