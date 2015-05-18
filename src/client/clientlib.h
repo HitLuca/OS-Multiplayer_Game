@@ -22,6 +22,8 @@ int serverAnswerFIFO;
 pthread_mutex_t mutex;
 int waitingForUserInput;
 int connected;
+int newQuestion;
+int endGame;
 
 void* userInput(void* arg);
 int validateUsername(char* username);

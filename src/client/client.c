@@ -116,6 +116,8 @@ int main()
 				//setto il mutex a 0
 				pthread_mutex_lock(&mutex);
 				waitingForUserInput=0;
+				newQuestion=1;
+				endGame=0;
 				
 				while (1)
 				{
@@ -123,10 +125,21 @@ int main()
 					int size = read(inMessageFIFO,rawMessages,MAX_MESSAGE_SIZE*MAX_CONCURRENT_MESSAGES);
 					if(size>0)
 					{
-						//printf("Ho ricevuto: %s  di dimensione %d\n",rawMessages,size);
+						/*printf("\nHo ricevuto:\n");
+						int j;
+						for(j=0;j<size;j++)
+						{
+							printf("%c",rawMessages[j]);
+							if(rawMessages[j]=='\0')
+							{
+								printf("\n");
+							}
+						}
+						printf("\n");*/
 						
 						Message** messageList = parseMessages(rawMessages,size); 
 						int i=0;
+						
 						
 						while(messageList[i]!=NULL)
 						{
@@ -180,9 +193,36 @@ int main()
 									pthread_mutex_unlock(&mutex);
 								}
 							}
+							else if(strchr(message->parameters[0],'N')!=NULL) //messaggio di notifica
+							{
+								printf("\n%s",message->parameters[1]);
+								if(waitingForUserInput==1 && endGame==0) //se il thread è bloccato in attesa di una risposta dall utente
+								{
+									waitingForUserInput=0;
+									if (pthread_cancel(bash)!=0)//lo chiudo
+									{
+										printf("Impossibile terminare il thread bash :(\n");
+									}
+									//e lo ricreo
+									pthread_create (&bash, NULL, &userInput, &arg);
+								}
+							}
+							else if(strchr(message->parameters[0],'R')!=NULL) //fine partita e classifica
+							{
+								printf("\nLa partita si e' conclusa\nNome Punteggio\n----------------\n");
+								endGame=1;
+								printf("%s\n",message->parameters[1]);
+								if (pthread_cancel(bash)!=0) //chiudo il thread bash
+								{
+									printf("Impossibile terminare il thread bash :(\n");
+								}
+								deallocResources();	
+								printf("\n");					
+								return 0;		
+							}
 							else
 							{
-								printf("Messaggio sconosciuto ricevuto: %s \n",rawMessages);
+								printf("Messaggio sconosciuto ricevuto: %s \n",message->parameters[0]);
 								deallocResources();
 								return 0;
 							}

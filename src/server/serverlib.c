@@ -59,6 +59,7 @@ void* authorizationThread(void* arg)
 				{
 					connectNewClient(id,message->parameters[2],clientMessageFIFO);
 					answer=authAcceptMessage(id);
+					broadcastConnection(id,message->parameters[2]);
 				}
 				else
 				{
@@ -70,7 +71,8 @@ void* authorizationThread(void* arg)
 			{	
 				int id=atoi(message->parameters[1]);
 				printf(" %s si e' disconnesso\n",clientData[id]->name);
-				disconnectClient(id);			
+				broadcastDisonnection(id,clientData[id]->name);		
+				disconnectClient(id);		
 			}
 			free(message);
 			free(answer);
@@ -485,6 +487,7 @@ void kick(char* name)
 	if(kicked>=0)
 	{
 		printf("Il giocatore %s e' stato disconnesso\n",clientData[kicked]->name);
+		broadcastDisonnection(kicked,clientData[kicked]->name);
 		disconnectClient(kicked);
 	}
 	else
@@ -534,5 +537,178 @@ void sendCustomizedQuestion(char* question,char* answer)
 	questions[currentQuestion].answer=answ;
 	
 	BroadcastQuestion();
+}
+
+void broadcastConnection(int id,char* name)
+{
+	char notification[MAX_MESSAGE_SIZE];
+	char message[MAX_MESSAGE_SIZE];
+	sprintf(message,"Il giocatore %s si e' connesso\n",name);
+	strcpy(notification,"N|");
+	strcat(notification,message);
+	int i;
+	for(i=0;i<clientsMaxNumber;i++){
+		if(clientData[i]!=NULL && id!=i)
+		{
+			write(clientData[i]->fifoID,notification,strlen(notification)+1);
+		}	
+	}
+}
+
+void broadcastDisonnection(int id,char* name)
+{
+	char notification[MAX_MESSAGE_SIZE];
+	char message[MAX_MESSAGE_SIZE];
+	sprintf(message,"Il giocatore %s si e' disconnesso\n",name);
+	strcpy(notification,"N|");
+	strcat(notification,message);
+	int i;
+	for(i=0;i<clientsMaxNumber;i++){
+		if(clientData[i]!=NULL && id!=i)
+		{
+			write(clientData[i]->fifoID,notification,strlen(notification)+1);
+		}	
+	}
+}
+
+void endGame(ClientData* winner)
+{
+	//Avviso tutti i clients che la partita è finita e specifico se hanno vinto o no
+	/*int i;
+	char endGameLoose[4]="E|L";
+	char endGameWin[4]="E|W";
+	for(i=0;i<clientsMaxNumber;i++){
+		if(clientData[i]!=NULL && winner!=clientData[i])
+		{
+			write(clientData[i]->fifoID,endGameLoose,strlen(endGameLoose)+1);
+		}	
+	}
+	write(winner->fifoID,endGameWin,strlen(endGameWin)+1);
+	//Invio la classifica
+	ClientData* best;
+	int* done=(int*)malloc(sizeof(int)*clientsMaxNumber);
+	for(i=0;i<clientsMaxNumber;i++){
+		done[i]=0;
+	}
+	int max;
+	while(1)
+	{
+		best=NULL;
+		max=-1000;
+		for(i=0;i<clientsMaxNumber;i++)
+		{
+			if(clientData[i]!=NULL && done[i]!=1)
+			{
+				if((clientData[i]->points)>max)
+				{
+					best=clientData[i];
+					max=clientData[i]->points;
+					done[i]=1;
+				}
+			}
+		}
+		if(best==NULL)
+		{
+			break;
+		}
+		else
+		{
+			broadcastRank(best);
+		}
+	}
+	broadcastEndGame();*/
 	
+	ClientData** ranking=(ClientData**)malloc(sizeof(ClientData*)*clientsMaxNumber);
+	int* done=(int*)malloc(sizeof(int)*clientsMaxNumber);
+	int i;
+	for(i=0;i<clientsMaxNumber;i++){
+		done[i]=0;
+	}
+	int max;
+	int j=0;
+	ClientData* best;
+	int maxIndex;
+	while(1)
+	{
+		best=NULL;
+		max=-1000;
+		for(i=0;i<clientsMaxNumber;i++)
+		{
+			if(clientData[i]!=NULL && done[i]!=1)
+			{
+				if((clientData[i]->points)>max)
+				{
+					best=clientData[i];
+					max=clientData[i]->points;
+					maxIndex=i;
+				}
+			}
+		}
+		if(best==NULL)
+		{
+			break;
+		}
+		else
+		{
+			ranking[j]=best;
+			done[maxIndex]=1;
+			j++;
+		}
+	}
+	char message[MAX_MESSAGE_SIZE];
+	strcpy(message,"R|");
+	for(i=0;i<j;i++)
+	{
+		strcat(message,ranking[i]->name);
+		strcat(message," ");
+		char points[18];
+		sprintf(points,"%d",ranking[i]->points);
+		strcat(message,points);
+		strcat(message,"\n");
+	}
+	printf("%s\n", message);
+	for(i=0;i<clientsMaxNumber;i++){
+		if(clientData[i]!=NULL)
+		{
+			write(clientData[i]->fifoID,message,strlen(message)+1);
+		}	
+	}
+	
+	
+	printf("La partita e' terminata\n\n");
+	close(serverAnswerFIFO);
+	close(serverAuthFIFO);
+	unlink(SERVER_ANSWER_FIFO);
+	unlink(SERVER_AUTHORIZATION_FIFO);
+	exit(0);
+}
+
+void broadcastRank(ClientData* best)
+{
+	char notification[MAX_MESSAGE_SIZE];
+	char message[MAX_MESSAGE_SIZE];
+	sprintf(message,"%d",(best->points));
+	strcpy(notification,"N|");
+	strcat(notification,(best->name));
+	strcat(notification," ");
+	strcat(notification,message);
+	printf("scrivo %s\n",notification);
+	int i;
+	for(i=0;i<clientsMaxNumber;i++){
+		if(clientData[i]!=NULL)
+		{
+			write(clientData[i]->fifoID,notification,strlen(notification)+1);
+		}	
+	}
+}
+
+void broadcastEndGame()
+{
+	int i;
+	for(i=0;i<clientsMaxNumber;i++){
+		if(clientData[i]!=NULL)
+		{
+			write(clientData[i]->fifoID,"S",2);
+		}	
+	}
 }

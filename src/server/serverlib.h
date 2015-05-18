@@ -32,6 +32,7 @@ int serverAnswerFIFO;
 int connectedClientsNumber;
 int clientsMaxNumber;
 int currentQuestion;
+int maxPoints;
 QuestionData questions[QUESTION_ID];
 ClientData** clientData;
 
@@ -56,5 +57,10 @@ void kick(char* name);
 Command* parseCommand(char* command);
 void listCommand();
 void sendCustomizedQuestion(char* question,char* answer);
+void broadcastConnection(int id,char* name);
+void broadcastDisonnection(int id,char* name);
+void endGame(ClientData* winner);
+void broadcastEndGame();
+void broadcastRank(ClientData* best);
 
 #endif

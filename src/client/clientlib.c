@@ -32,7 +32,11 @@ void* userInput(void* arg)
 	
 	while(1)
 	{
-		printf("La domanda e' %s\n", currentQuestion.text);
+		if(newQuestion==1)
+		{
+			printf("La domanda e' %s\n", currentQuestion.text);
+			newQuestion=0;
+		}
 		printf("La tua risposta>");
 		waitingForUserInput=1;
 		getline(&input,&size,stdin);
@@ -127,6 +131,7 @@ void initializeQuestion(Message *message)
 
 void setNewQuestion(Message *message)
 {
+	newQuestion=1;
 	strcpy(currentQuestion.text,message->parameters[2]);
 	strcpy(currentQuestion.id,message->parameters[1]);
 }

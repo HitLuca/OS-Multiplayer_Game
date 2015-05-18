@@ -41,17 +41,12 @@ int main(int argc,char **argv)
 		
 		connectedClientsNumber=0;
 		clientsMaxNumber=10; //TODO imposta il massimo da parametro
+		maxPoints=11; //TODO imposta da parametro
 		initializeClientData();
 		currentQuestion=0;
 		
 		InitializeQuestions();
 		GenerateNewQuestion();
-		/*Question* question = (Question*)malloc(sizeof(Question));
-		strcpy(question->id, "0");
-		strcpy(question->text,"3 + 2 = ?");
-		questions[currentQuestion].question=question;
-		questions[currentQuestion].answer=(char*)malloc(sizeof(char)*5);
-		strcpy(questions[currentQuestion].answer,"5");*/
 
 		//Creo il thread per i comandi utente
 		pthread_t bash;
@@ -84,9 +79,16 @@ int main(int argc,char **argv)
 				{
 					client->points++;
 					sendResponse(client->fifoID, buildResult(answer, client, result));
-					//Nuova domanda
-					GenerateNewQuestion();
-					BroadcastQuestion();
+					if(client->points>=maxPoints)
+					{
+						endGame(client);
+					}
+					else
+					{
+						//Nuova domanda
+						GenerateNewQuestion();
+						BroadcastQuestion();
+					}
 				}
 				else if (result==2)
 				{
