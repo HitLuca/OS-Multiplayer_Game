@@ -34,19 +34,41 @@ int main(int argc,char **argv)
 	}
 	else
 	{
+		//Setto le variabili incluse max e win
+		connectedClientsNumber=0;
+		currentQuestion=0;
+		if (strcmp(argv[1],"0")!=0)
+		{	
+			clientsMaxNumber = atoi(argv[1]);
+			printf("ci sono %d clients al massimo\n",clientsMaxNumber);
+		}
+		else
+		{
+			clientsMaxNumber = CLIENTS_MAX_NUMBER;
+		}
+		if (strcmp(argv[2],"0")!=0)
+		{	
+			winPoints = atoi(argv[2]);
+			printf("massimo %d punti\n",winPoints);
+		}
+		else
+		{
+			winPoints = WIN_POINTS;
+		}
+
 		//Creo il thread con la parte di autorizzazione
 		pthread_t authorization;
 		pthread_create (&authorization, NULL, &authorizationThread, NULL);
 
+
 		
 		connectedClientsNumber=0;
-		clientsMaxNumber=10; //TODO imposta il massimo da parametro
-		maxPoints=11; //TODO imposta da parametro
 		initializeClientData();
 		currentQuestion=0;
 		
 		InitializeQuestions();
 		GenerateNewQuestion();
+
 
 		//Creo il thread per i comandi utente
 		pthread_t bash;
@@ -79,7 +101,7 @@ int main(int argc,char **argv)
 				{
 					client->points++;
 					sendResponse(client->fifoID, buildResult(answer, client, result));
-					if(client->points>=maxPoints)
+					if(client->points>=winPoints)
 					{
 						endGame(client);
 					}

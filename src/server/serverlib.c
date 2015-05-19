@@ -84,7 +84,7 @@ void* authorizationThread(void* arg)
 void* bashThread(void*arg)
 {
 	char* rawCommand = (char*)malloc(MAX_COMMAND_SIZE*sizeof(char));
-	printf("\e[1;1H\e[2J");
+	//printf("\e[1;1H\e[2J");
 	printf("Benvenuto nel terminale utente!\nDigita help per una lista dei comandi\n");
 	while(1)
 	{
