@@ -3,6 +3,7 @@
 
 #include "../common/commonlib.h"
 
+//Definizioni costanti
 #define MAX_COMMAND_SIZE 100
 #define CLIENTS_MAX_NUMBER 10
 #define WIN_POINTS 5
@@ -11,23 +12,27 @@
 #define QUESTION_ID 8
 #define MAX_QUESTION_NUM 100
 
+//Struct contenente i dati dei client necessari a contattarli e operare su di essi
 typedef struct {
 	char* name;
 	int fifoID;
 	int points;
 } ClientData;
 
+//Struct contenente i dati della domanda corrente
 typedef struct {
 	Question* question;
 	char* answer;
 }QuestionData;
 
+//Struct contenente i comandi bash
 typedef struct {
 	char* operation;
 	char** parameters;
 	int parameterCount;
 }Command;
 
+//Variabili globali
 int serverAuthFIFO;
 int serverAnswerFIFO;
 int connectedClientsNumber;
@@ -37,6 +42,7 @@ int currentQuestion;
 QuestionData questions[QUESTION_ID];
 ClientData** clientData;
 
+//Funzioni lato server
 void* authorizationThread(void* arg);
 void* bashThread(void*arg);
 int checkClientRequest(Message *message);
