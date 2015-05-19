@@ -24,6 +24,8 @@ int waitingForUserInput;
 int connected;
 int newQuestion;
 int endGame;
+FILE* testFile;
+int testRun;
 
 void* userInput(void* arg);
 int validateUsername(char* username);
@@ -35,5 +37,6 @@ void initializeQuestion(Message *message);
 void setNewQuestion(Message *message);
 void deallocResources();
 void handler();
+void* testInput(void* arg);
 
 #endif

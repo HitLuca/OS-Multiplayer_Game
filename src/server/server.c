@@ -20,11 +20,11 @@ int main(int argc,char **argv)
 	struct sigaction sa;
 	sa.sa_handler = &handler;
 	  
-	sigaction (SIGKILL, &sa, NULL);
-	sigaction (SIGABRT, &sa, NULL);
-	sigaction (SIGQUIT, &sa, NULL);
-	sigaction (SIGINT, &sa, NULL);
-	sigaction (SIGSEGV, &sa, NULL);
+	//sigaction (SIGKILL, &sa, NULL);
+	//sigaction (SIGABRT, &sa, NULL);
+	//sigaction (SIGQUIT, &sa, NULL);
+	//sigaction (SIGINT, &sa, NULL);
+	//sigaction (SIGSEGV, &sa, NULL);
 	
 	//Check se il server è gia avviato
 	if (mkfifo(SERVER_AUTHORIZATION_FIFO,FILE_MODE)!=0)
@@ -37,6 +37,7 @@ int main(int argc,char **argv)
 		//Setto le variabili incluse max e win
 		connectedClientsNumber=0;
 		currentQuestion=0;
+		testRun=1;
 		if (strcmp(argv[1],"0")!=0)
 		{	
 			clientsMaxNumber = atoi(argv[1]);
@@ -54,6 +55,18 @@ int main(int argc,char **argv)
 		else
 		{
 			winPoints = WIN_POINTS;
+		}
+
+		if(testRun==1)
+		{
+			char filePath[1000];
+			strcpy(filePath,"../assets/server/questions.test");
+			testFile = fopen(filePath,"r");
+			if(testFile==NULL)
+			{
+				printf("Errore apertura file di test\n\n");
+				return 0;
+			}
 		}
 
 		//Creo il thread con la parte di autorizzazione
@@ -83,14 +96,14 @@ int main(int argc,char **argv)
 		while (1) 
 		{
 			int size=read(serverAnswerFIFO,message,MAX_MESSAGE_SIZE*clientsMaxNumber);
-			printf("answThread: Ho ricevuto %s nella FIFO risposte\n", message);
+			//printf("answThread: Ho ricevuto %s nella FIFO risposte\n", message);
 			Message **messages=parseMessages(message,size);
 			int i=0;
 			while(messages[i]!=NULL)
 			{
 				Message* answer = messages[i];
 				i++;
-				printf("Il client con ID %s ha risposto %s alla domanda con ID %s\n", answer->parameters[0], answer->parameters[2],  answer->parameters[1]);
+				printf("%s ha risposto %s alla domanda con ID %s\n", clientData[atoi(answer->parameters[0])]->name, answer->parameters[2],  questions[atoi(answer->parameters[1])].question->text);
 				
 				int result = checkAnswer(answer);
 				printf("result: %d\n", result);

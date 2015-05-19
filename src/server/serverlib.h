@@ -5,7 +5,7 @@
 
 #define MAX_COMMAND_SIZE 100
 #define CLIENTS_MAX_NUMBER 10
-#define WIN_POINTS 5
+#define WIN_POINTS 20
 #define MAX_PID_LENGTH 15
 #define MAX_PARAMETERS_NUMBER 6
 #define QUESTION_ID 8
@@ -36,6 +36,8 @@ int winPoints;
 int currentQuestion;
 QuestionData questions[QUESTION_ID];
 ClientData** clientData;
+int testRun;
+FILE* testFile;
 
 void* authorizationThread(void* arg);
 void* bashThread(void*arg);

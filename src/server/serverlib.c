@@ -236,7 +236,7 @@ char* authRejectMessage(int error)
 int checkAnswer(Message* message)
 {
 	int questionIndex = atoi(message->parameters[1]);
-	if (strcmp(questions[questionIndex].answer, message->parameters[2])==0)
+	if (strcmp(message->parameters[2],questions[questionIndex].answer)==0)
 	{
 		if (questionIndex==currentQuestion)
 		{
@@ -308,39 +308,61 @@ void GenerateNewQuestion(){
 		free(questions[currentQuestion].answer);
 	}
 	
-	char nums1[10];
-	char nums2[10];
-	char *answs=(char*)malloc(11*sizeof(char));
-	int num1,num2,answ;
-	char op[2];
-	
-	num1=rand()%MAX_QUESTION_NUM;
-	num2=rand()%MAX_QUESTION_NUM;
-	
-	//TODO OPTION WITH OTHER OPERATIONS
-	op[0]='+';
-	op[1]='\0';
-	
-	sprintf(nums1,"%d",num1);
-	sprintf(nums2,"%d",num2);
-	
 	char newText[MAX_QUESTION_SIZE];
-	strcpy(newText,nums1);
-	strcat(newText," ");
-	strcat(newText,op);
-	strcat(newText," ");
-	strcat(newText,nums2);
-	strcat(newText," = ?");
-	
 	char newId[MAX_QID_SIZE];
-	sprintf(newId,"%d",currentQuestion);
+	char *answs=(char*)malloc(11*sizeof(char));
 	
-	if(strcmp(op,"+")==0) //TODO add other operations
+	if(testRun==0)
 	{
-		answ=num1+num2;
+		char nums1[10];
+		char nums2[10];
+		
+		int num1,num2,answ;
+		char op[2];
+		
+		num1=rand()%MAX_QUESTION_NUM;
+		num2=rand()%MAX_QUESTION_NUM;
+		
+		//TODO OPTION WITH OTHER OPERATIONS
+		op[0]='+';
+		op[1]='\0';
+		
+		sprintf(nums1,"%d",num1);
+		sprintf(nums2,"%d",num2);
+		
+		
+		strcpy(newText,nums1);
+		strcat(newText," ");
+		strcat(newText,op);
+		strcat(newText," ");
+		strcat(newText,nums2);
+		strcat(newText," = ?");
+		
+		if(strcmp(op,"+")==0) //TODO add other operations
+		{
+			answ=num1+num2;
+		}
+		
+		sprintf(answs,"%d",answ);	
 	}
-	
-	sprintf(answs,"%d",answ);
+	else
+	{
+		
+		fgets(newText, MAX_MESSAGE_SIZE, testFile);
+		strchr(newText,'\n')[0]='\0';
+		if(strcmp(newText,"end")==0)
+		{
+			printf("Sessione di test terminata\n\n");
+			{
+				handler();
+			}
+		}
+		fgets(answs, MAX_MESSAGE_SIZE, testFile);
+		
+		strchr(answs,'\n')[0]='\0';
+		
+	}
+	sprintf(newId,"%d",currentQuestion);
 	
 	Question* newQuestion = (Question*) malloc(sizeof(Question));
 	strcpy(newQuestion->id,newId);
@@ -348,7 +370,7 @@ void GenerateNewQuestion(){
 	
 	questions[currentQuestion].question=newQuestion;
 	questions[currentQuestion].answer=answs;
-	printf("La nuova domanda e' %s\n",newText);
+	printf("La nuova domanda e' %s, ha risposta %s\n",newText,answs);
 }
 
 void BroadcastQuestion(){
@@ -572,52 +594,7 @@ void broadcastDisonnection(int id,char* name)
 }
 
 void endGame(ClientData* winner)
-{
-	//Avviso tutti i clients che la partita è finita e specifico se hanno vinto o no
-	/*int i;
-	char endGameLoose[4]="E|L";
-	char endGameWin[4]="E|W";
-	for(i=0;i<clientsMaxNumber;i++){
-		if(clientData[i]!=NULL && winner!=clientData[i])
-		{
-			write(clientData[i]->fifoID,endGameLoose,strlen(endGameLoose)+1);
-		}	
-	}
-	write(winner->fifoID,endGameWin,strlen(endGameWin)+1);
-	//Invio la classifica
-	ClientData* best;
-	int* done=(int*)malloc(sizeof(int)*clientsMaxNumber);
-	for(i=0;i<clientsMaxNumber;i++){
-		done[i]=0;
-	}
-	int max;
-	while(1)
-	{
-		best=NULL;
-		max=-1000;
-		for(i=0;i<clientsMaxNumber;i++)
-		{
-			if(clientData[i]!=NULL && done[i]!=1)
-			{
-				if((clientData[i]->points)>max)
-				{
-					best=clientData[i];
-					max=clientData[i]->points;
-					done[i]=1;
-				}
-			}
-		}
-		if(best==NULL)
-		{
-			break;
-		}
-		else
-		{
-			broadcastRank(best);
-		}
-	}
-	broadcastEndGame();*/
-	
+{	
 	ClientData** ranking=(ClientData**)malloc(sizeof(ClientData*)*clientsMaxNumber);
 	int* done=(int*)malloc(sizeof(int)*clientsMaxNumber);
 	int i;
@@ -666,7 +643,6 @@ void endGame(ClientData* winner)
 		strcat(message,points);
 		strcat(message,"\n");
 	}
-	printf("%s\n", message);
 	for(i=0;i<clientsMaxNumber;i++){
 		if(clientData[i]!=NULL)
 		{

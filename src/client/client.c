@@ -50,16 +50,43 @@ int main()
 		}
 		
 		//chiedo all'utente di inserire un username
+		testRun=1; //TODO imposto se è una run di test
+		char* testFileName=(char*)malloc(sizeof(char)*10);
+		strcpy(testFileName,"1");
+		
 		char* username=(char*)malloc(sizeof(char)*MAX_USERNAME_LENGHT);
 		size_t size=MAX_USERNAME_LENGHT;
-		int correctUsername=-1;
-		while(correctUsername==-1)
+		
+		if(testRun==0) //se non è una run di test chiedo di inserire un username
 		{
-			printf("Inserisci il tuo username> ");
-			getline(&username,&size,stdin);
-			strchr(username,'\n')[0]='\0';
-			fflush(stdin);
-			correctUsername = validateUsername(username);
+			int correctUsername=-1;
+			while(correctUsername==-1)
+			{
+				printf("Inserisci il tuo username> ");
+				getline(&username,&size,stdin);
+				strchr(username,'\n')[0]='\0';
+				fflush(stdin);
+				correctUsername = validateUsername(username);
+			}
+		}
+		else //altrimenti lo leggo da file
+		{
+			char filePath[1000];
+			strcpy(filePath,"../assets/client/");
+			strcat(filePath,testFileName);
+			strcat(filePath,".test");
+			testFile = fopen(filePath,"r");
+			if(testFile==NULL)
+			{
+				printf("Errore apertura file di test\n\n");
+				return 0;
+			}
+			int size = 20;
+			char delay[20];
+
+			fscanf(testFile,"%s",delay);
+			fscanf(testFile,"%s",username);
+			sleep(atoi(delay)/1000.0);
 		}
 		
 		//mando un messaggio al server richiedendo l'autorizzazione e passandogli il mio pid e il mio username
@@ -108,9 +135,14 @@ int main()
 				//Componenti del thread bash
 				pthread_t bash;
 				char arg[MAX_MESSAGE_SIZE];
-				
-				pthread_create (&bash, NULL, &userInput, arg);
-				
+				if(testRun==0)
+				{
+					pthread_create (&bash, NULL, &userInput, arg);
+				}
+				else
+				{
+					pthread_create (&bash, NULL, &testInput, arg);
+				}
 				char rawMessages[MAX_MESSAGE_SIZE];
 				
 				//setto il mutex a 0
@@ -125,18 +157,6 @@ int main()
 					int size = read(inMessageFIFO,rawMessages,MAX_MESSAGE_SIZE*MAX_CONCURRENT_MESSAGES);
 					if(size>0)
 					{
-						/*printf("\nHo ricevuto:\n");
-						int j;
-						for(j=0;j<size;j++)
-						{
-							printf("%c",rawMessages[j]);
-							if(rawMessages[j]=='\0')
-							{
-								printf("\n");
-							}
-						}
-						printf("\n");*/
-						
 						Message** messageList = parseMessages(rawMessages,size); 
 						int i=0;
 						

@@ -49,6 +49,29 @@ void* userInput(void* arg)
 	}
 }
 
+void* testInput(void* arg)  
+{
+	//Il client invia le risposte ad serverAnswerFIFO
+	char* input=(char*)malloc(sizeof(char)*MAX_MESSAGE_SIZE);
+	
+	char* answer=(char*)malloc(sizeof(char)*20);
+	char* delay=(char*)malloc(sizeof(char)*20);
+	while(1)
+	{
+		fscanf(testFile,"%s",delay);
+		if(strcmp(delay,"end")==0)
+		{
+			break;
+		}
+		fscanf(testFile,"%s",answer);
+		waitingForUserInput=1;
+		sleep(atoi(delay)/1000.0);
+		sendResponse(serverAnswerFIFO, answer);
+		waitingForUserInput=0;
+		pthread_mutex_lock(&mutex);
+	}
+}
+
 int validateUsername(char* username)
 {
 	printf("hai scelto %s\n",username);
