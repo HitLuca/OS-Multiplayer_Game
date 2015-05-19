@@ -10,6 +10,8 @@
 
 #include "clientlib.h"
 
+//Handler per le uscite dal programma, libero le risorse e avverto che mi sono disconnesso
+//{Q|idClient}
 void handler ()
 {  
 	deallocResources();
@@ -24,6 +26,7 @@ void handler ()
 	exit(0);
 }
 
+//Thread bash che legge le risposte client e notifica delle nuove domande
 void* userInput(void* arg)  
 {
 	//Il client invia le risposte ad serverAnswerFIFO
@@ -72,6 +75,7 @@ void* testInput(void* arg)
 	}
 }
 
+//Funzione di validazione del nome scelto dal giocatore
 int validateUsername(char* username)
 {
 	printf("hai scelto %s\n",username);
@@ -101,6 +105,7 @@ int validateUsername(char* username)
 	
 }
 
+//Funzione di invio del messaggio di autentificazione
 char* authRequestMessage(char* pid,char* name)
 {
 	char *message = (char*)malloc(sizeof(char)*(strlen(pid)+strlen(name)+4));
@@ -111,6 +116,7 @@ char* authRequestMessage(char* pid,char* name)
 	return message;
 }
 
+//Check della risposta del server in seguito alla mia richiesta di autentificazione
 int checkServerAuthResponse(Message* message){
 	if(strcmp(message->parameters[0],"A")==0)
 	{
@@ -126,6 +132,7 @@ int checkServerAuthResponse(Message* message){
 	return -1;
 }
 
+//Inizializzazione dei dati client
 void initializeClientData(Message *message){
 	clientData->id=(char*)malloc(sizeof(char)*(strlen(message->parameters[1])+1));
 	strcpy(clientData->id,message->parameters[1]);
@@ -133,6 +140,8 @@ void initializeClientData(Message *message){
 	strcpy(clientData->points,message->parameters[4]);
 }
 
+//Routine di invio della risposta al server nella serverAnswerFIFO
+//{idClient|idQuestion|answer}
 void sendResponse(int serverAnswerFIFO, char* answer)
 {
 	char* message= malloc(MAX_MESSAGE_SIZE*sizeof(char)); 
@@ -145,13 +154,14 @@ void sendResponse(int serverAnswerFIFO, char* answer)
 	write(serverAnswerFIFO,message,strlen(message)+1);
 }
 
+//Inizializzazione della domanda da messaggio passato in argomento
 void initializeQuestion(Message *message)
 {
 	strcpy(currentQuestion.text,message->parameters[2]);
 	strcpy(currentQuestion.id,message->parameters[3]);
 }
 
-
+//Set della nuova domanda
 void setNewQuestion(Message *message)
 {
 	newQuestion=1;
@@ -159,9 +169,8 @@ void setNewQuestion(Message *message)
 	strcpy(currentQuestion.id,message->parameters[1]);
 }
 
+//Deallocazione delle risorse con unlink delle FIFO client
 void deallocResources(){
 	close(inMessageFIFO);
 	unlink(messageFIFOName);
-	
 }
-

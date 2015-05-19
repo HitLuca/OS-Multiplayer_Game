@@ -71,7 +71,7 @@ wrapper: objects
 #Creazione della cartella bin con controllo della sua esistenza per non generare errori in caso sia già presente
 bin_dir:
 	@clear
-	date
+	@date
 	@echo $(NOTIFY_STRING) Controllo della presenza cartella $(OK_COLOR)bin$(NO_COLOR)
 	@if [ -d "bin" ]; then \
 	echo $(WARN_STRING) La cartella $(OK_COLOR)bin$(NO_COLOR) esiste già; \

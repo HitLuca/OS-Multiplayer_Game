@@ -10,6 +10,7 @@
 
 #include "commonlib.h"
 
+//Funzione di parsing dei messaggi Server->Client e Client->Server
 Message* parseMessage(char *message)
 {
 	//conto i parametri
@@ -49,6 +50,7 @@ Message* parseMessage(char *message)
 	return m;
 }
 
+//Funzione di parsing di messaggi in genere, per separare i vari messaggi se nella FIFO ne sono arrivati più di uno e devono essere ancora letti
 Message** parseMessages(char *rawMessages,int size){
 	//Conto il numero di separatori
 	int separator=1;

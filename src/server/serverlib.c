@@ -10,6 +10,7 @@
 
 #include "serverlib.h"
 
+//Handler per le uscite dal programma, libero le risorse e avverto i client che non sono più disponibile
 void handler ()
 {  
 	broadcastServerClosed();
@@ -21,6 +22,7 @@ void handler ()
 	exit(0);
 }
 
+//Thread che gestisce le richieste di autorizzazione dei client
 void* authorizationThread(void* arg)
 {
 	//Avvio il monitoraggio delle autorizzazioni
@@ -31,9 +33,9 @@ void* authorizationThread(void* arg)
 	
 	char* answer;
 	
+	//Ciclo per la lettura dei messaggi nella coda serverAuthFIFO
 	while(1)
 	{
-		
 		int size = read(serverAuthFIFO,clientMessage,MAX_MESSAGE_SIZE*clientsMaxNumber);
 		//printf("authThread: Ho ricevuto %s \n",clientMessage);
 		Message **messages=parseMessages(clientMessage,size);
@@ -81,6 +83,7 @@ void* authorizationThread(void* arg)
 	}
 }
 
+//Thread per il bash utente, necessario per la lettura dei comandi
 void* bashThread(void*arg)
 {
 	char* rawCommand = (char*)malloc(MAX_COMMAND_SIZE*sizeof(char));
@@ -94,7 +97,7 @@ void* bashThread(void*arg)
 		fflush(stdin);
 		strchr(rawCommand,'\n')[0]='\0';
 		Command* command=parseCommand(rawCommand);
-		if (strcmp(command->operation, "help")==0)
+		if (strcmp(command->operation, "help")==0) //Comando help
 		{
 			printf("Lista comandi utente:\n");
 			printf("help: Richiama questo messaggio di aiuto\n");
@@ -103,11 +106,11 @@ void* bashThread(void*arg)
 			printf("list: Stampa la lista degli utenti connessi\n");
 			printf("clear: Pulisce la schermata corrente\n");
 		}
-		else if (strcmp(command->operation, "clear")==0)
+		else if (strcmp(command->operation, "clear")==0) //Comando clear
 		{
 			printf("\e[1;1H\e[2J");
 		}
-		else if (strstr(command->operation, "kick")!=NULL)
+		else if (strstr(command->operation, "kick")!=NULL) //Comando kick
 		{
 			if(command->parameterCount==1)
 			{
@@ -118,7 +121,7 @@ void* bashThread(void*arg)
 				printf("numero di parametri errato in %s: 1 parametro necessario\n",rawCommand);
 			}
 		}
-		else if (strstr(command->operation, "list")!=NULL)
+		else if (strstr(command->operation, "list")!=NULL) //Comando list
 		{
 			if(command->parameterCount==0)
 			{
@@ -129,7 +132,7 @@ void* bashThread(void*arg)
 				printf("numero di parametri errato in %s: 0 parametri necessari\n",rawCommand);
 			}
 		}
-		else if (strstr(command->operation, "question")!=NULL)
+		else if (strstr(command->operation, "question")!=NULL) //Comando question
 		{
 			if(command->parameterCount==2)
 			{
@@ -140,13 +143,14 @@ void* bashThread(void*arg)
 				printf("numero di parametri errato in %s: 2 parametri necessari\n",rawCommand);
 			}
 		}
-		else
+		else //Comandi sconosciuti
 		{
 			printf("%s:Comando non riconosciuto\n",command->operation);
 		}
 	}
 }
 
+//Controllo della richiesta di autentificazione ricevuta dal client
 int checkClientAuthRequest(Message *message)
 {
 	if(message->parameterCount!=3)
@@ -172,7 +176,7 @@ int checkClientAuthRequest(Message *message)
 			{
 				if(clientData[i]==NULL)
 				{
-					return i;
+					return i; //GIVEN ID
 				}
 			}
 			
@@ -184,6 +188,7 @@ int checkClientAuthRequest(Message *message)
 	}
 }
 
+//Funzione di inizializzazione della struttura contenente i dati associati ai client
 void initializeClientData()
 {
 	clientData = (ClientData**)malloc(sizeof(ClientData*)*clientsMaxNumber);
@@ -194,6 +199,7 @@ void initializeClientData()
 	}
 }
 
+//Aggiunta di un nuovo client a clientData, con il set di tutti i parametri
 void connectNewClient(int id,char* name,int fifoID)
 {
 	clientData[id]=(ClientData*)malloc(sizeof(ClientData));
@@ -205,6 +211,8 @@ void connectNewClient(int id,char* name,int fifoID)
 	printf("Ho accettato la richiesta di %s, e gli ho assegnato %d punti\n-Rimangono %d posti liberi\n",clientData[id]->name,clientData[id]->points,clientsMaxNumber-connectedClientsNumber);
 }
 
+//Funzione di creazione del messaggio da reinviare al client che ha richiesto di partecipare
+//{A|idClient|question|idQuestion|points}
 char* authAcceptMessage(int id)
 {
 	char idc[3];
@@ -223,6 +231,8 @@ char* authAcceptMessage(int id)
 	return answer;
 }
 
+//Creazione del messaggio di reject della richiesta di autentificazione
+//{A|errors}
 char* authRejectMessage(int error)
 {
 	char errors[4];
@@ -233,6 +243,7 @@ char* authRejectMessage(int error)
 	return answer;
 }
 
+//Routine di controllo delle risposte
 int checkAnswer(Message* message)
 {
 	int questionIndex = atoi(message->parameters[1]);
@@ -253,6 +264,8 @@ int checkAnswer(Message* message)
 	}
 }
 
+//Costruzione del risultato della risposta da reinviare al client
+//{C/W/T|idQuestion|points}
 char* buildResult(Message* message, ClientData* player, int cwt)
 {
 	char castedPoints[POINT_SIZE];
@@ -261,15 +274,15 @@ char* buildResult(Message* message, ClientData* player, int cwt)
 	char* answer = malloc((6+strlen(idQuestion)+strlen(castedPoints))*sizeof(char));
 	if (cwt==1)
 	{
-		strcpy(answer, "C|");
+		strcpy(answer, "C|"); //Risposta giusta domanda corrente
 	}
 	else if(cwt==2)
 	{
-		strcpy(answer, "W|");
+		strcpy(answer, "W|"); //Risposta sbagliata
 	}
 	else
 	{
-		strcpy(answer, "T|");
+		strcpy(answer, "T|"); //Risposta giusta domanda vecchia
 	}
 	strcat(answer, idQuestion);
 	strcat(answer, "|");
@@ -278,24 +291,28 @@ char* buildResult(Message* message, ClientData* player, int cwt)
 	return answer;
 }
 
+//Get del mittente del messaggio
 ClientData* getSender(Message* message)
 {
 	int id = atoi(message->parameters[0]);
 	return clientData[id];
 }
 
+//Invio della risposta alla FIFO del client
 void sendResponse(int fifoID, char* response)
 {
 	write(fifoID,response, strlen(response)+1);
 	free(response);
 }
 
+//Inizializzazione delle domande
 void InitializeQuestions()
 {
 	currentQuestion=QUESTION_ID;
 	srand(time(NULL));
 }
 
+//Funzione di generazione di domande casuali e relative risposte
 void GenerateNewQuestion(){
 	currentQuestion=(currentQuestion+1)%QUESTION_ID;
 	
@@ -373,6 +390,7 @@ void GenerateNewQuestion(){
 	printf("La nuova domanda e' %s, ha risposta %s\n",newText,answs);
 }
 
+//Broadcast del messaggio contenente la nuova domanda a tutti i client
 void BroadcastQuestion(){
 	int i;
 	char newQuestionMessage [MAX_MESSAGE_SIZE];
@@ -388,6 +406,8 @@ void BroadcastQuestion(){
 	}
 }
 
+//Chiamata quando si vuole far disconnettere forzatamente un client dal gioco (usando il comando kick)
+//Non invia il messaggio, per quello va usata la funzione void kick(char* name)
 void disconnectClient(int id)
 {
 	if(clientData[id]!=NULL)
@@ -402,6 +422,7 @@ void disconnectClient(int id)
 	}
 }
 
+//Funzione che invia il messaggio di server down a tutti i client
 void broadcastServerClosed()
 {
 	int i;
@@ -415,19 +436,22 @@ void broadcastServerClosed()
 	}
 }
 
+//Parsing del comando inserito nella bash, contenente un opzionale argomento
+//L'argomento se è una frase va inserito tra " " in modo da riconoscerlo come unico
+//Argomenti a singola parola possono essere tra " "
 Command* parseCommand(char* rawCommand){
 	Command *command=(Command*)malloc(sizeof(Command));
 	int size = strlen(rawCommand);
 	char *start = rawCommand;
 	char* space=strchr(rawCommand,' ');
-	if(space==NULL)
+	if(space==NULL) //Comando senza argomenti
 	{
 		command->operation=(char*)malloc(sizeof(char)*(strlen(rawCommand)+1));
 		strcpy(command->operation,rawCommand);
 		command->parameterCount=0;
 		command->parameters=NULL;
 	}
-	else
+	else //Il comando contiene 1 o più argomenti
 	{
 		space[0]='\0';
 		space++;
@@ -435,7 +459,7 @@ Command* parseCommand(char* rawCommand){
 		strcpy(command->operation,rawCommand);
 		command->parameterCount=0;
 		command->parameters=(char**)malloc(sizeof(char*)*MAX_PARAMETERS_NUMBER);
-		while(space[0]!='\0')
+		while(space[0]!='\0')//Parso l'argomento e riduco il numero di spazi a 1
 		{
 			if(space[0]==' ')
 			{
@@ -488,6 +512,7 @@ Command* parseCommand(char* rawCommand){
 	return command;
 }
 
+//Invio del messaggio di kick al client
 void kick(char* name)
 {
 	
@@ -518,6 +543,7 @@ void kick(char* name)
 	}
 }
 
+//Stampa dei giocatori in partita (comando list)
 void listCommand()
 {
 	
@@ -535,6 +561,7 @@ void listCommand()
 	}
 }
 
+//Invio di una domanda personalizzata ai client (con il comando question)
 void sendCustomizedQuestion(char* question,char* answer)
 {
 	currentQuestion=(currentQuestion+1)%QUESTION_ID;
@@ -561,6 +588,7 @@ void sendCustomizedQuestion(char* question,char* answer)
 	BroadcastQuestion();
 }
 
+//Funzione per avvertire i client che un nuovo giocatore si è connesso
 void broadcastConnection(int id,char* name)
 {
 	char notification[MAX_MESSAGE_SIZE];
@@ -577,6 +605,7 @@ void broadcastConnection(int id,char* name)
 	}
 }
 
+//Funzione per avvertire i client che un nuovo giocatore si è disconnesso
 void broadcastDisonnection(int id,char* name)
 {
 	char notification[MAX_MESSAGE_SIZE];
@@ -593,6 +622,7 @@ void broadcastDisonnection(int id,char* name)
 	}
 }
 
+//Terminazione del gioco, unlink delle FIFO e liberazione delle risorse
 void endGame(ClientData* winner)
 {	
 	ClientData** ranking=(ClientData**)malloc(sizeof(ClientData*)*clientsMaxNumber);
@@ -659,6 +689,7 @@ void endGame(ClientData* winner)
 	exit(0);
 }
 
+//Invio della classifica ai client a fine gioco
 void broadcastRank(ClientData* best)
 {
 	char notification[MAX_MESSAGE_SIZE];
@@ -678,6 +709,7 @@ void broadcastRank(ClientData* best)
 	}
 }
 
+//Notifica ai client della fine del gioco
 void broadcastEndGame()
 {
 	int i;

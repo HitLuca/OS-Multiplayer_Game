@@ -34,23 +34,29 @@ int main(int argc,char **argv)
 	}
 	else
 	{
-		//Setto le variabili incluse max e win
+		//Setto le variabili iniziali
 		connectedClientsNumber=0;
 		currentQuestion=0;
+		
+		//TODO settare con il valore passato
 		testRun=1;
+		
+		//Se la variabile max è presente la setto
 		if (strcmp(argv[1],"0")!=0)
 		{	
 			clientsMaxNumber = atoi(argv[1]);
-			printf("ci sono %d clients al massimo\n",clientsMaxNumber);
+			//printf("ci sono %d clients al massimo\n",clientsMaxNumber);
 		}
 		else
 		{
 			clientsMaxNumber = CLIENTS_MAX_NUMBER;
 		}
+
+		//Se la variabile win è presente la setto
 		if (strcmp(argv[2],"0")!=0)
 		{	
 			winPoints = atoi(argv[2]);
-			printf("massimo %d punti\n",winPoints);
+			//printf("massimo %d punti\n",winPoints);
 		}
 		else
 		{
@@ -74,11 +80,11 @@ int main(int argc,char **argv)
 		pthread_create (&authorization, NULL, &authorizationThread, NULL);
 
 
-		
+		//Inizializzazione delle strutture con i dati dei client e domande
 		connectedClientsNumber=0;
 		initializeClientData();
+
 		currentQuestion=0;
-		
 		InitializeQuestions();
 		GenerateNewQuestion();
 
@@ -92,7 +98,8 @@ int main(int argc,char **argv)
 
 		//Il server legge le risposte da serverAnswerFIFO
 		char message[MAX_MESSAGE_SIZE*clientsMaxNumber];
-		//printf("answThread: In lettura:\n");
+
+		//Ciclo continuamente per leggere i messaggi dei clients
 		while (1) 
 		{
 			int size=read(serverAnswerFIFO,message,MAX_MESSAGE_SIZE*clientsMaxNumber);
@@ -110,12 +117,14 @@ int main(int argc,char **argv)
 				
 				ClientData* client = getSender(answer);
 
-				if (result==1)
+				//Check della risposta del client
+				if (result==1) //Risposta corretta
 				{
 					client->points++;
 					sendResponse(client->fifoID, buildResult(answer, client, result));
 					if(client->points>=winPoints)
 					{
+						//Partita finita
 						endGame(client);
 					}
 					else
@@ -125,18 +134,18 @@ int main(int argc,char **argv)
 						BroadcastQuestion();
 					}
 				}
-				else if (result==2)
+				else if (result==2) //Risposta errata
 				{
 					client->points--;
 					sendResponse(client->fifoID, buildResult(answer, client, result));
 				}
-				else
+				else //Altro
 				{
 					sendResponse(client->fifoID, buildResult(answer, client, result));
 				}
-
 				
-				free(answer); //<---------------------7
+				//Libero le risorse	
+				free(answer);
 			}
 		}
 		return 0;
