@@ -37,7 +37,6 @@ void* authorizationThread(void* arg)
 	while(1)
 	{
 		int size = read(serverAuthFIFO,clientMessage,MAX_MESSAGE_SIZE*clientsMaxNumber);
-		//printf("authThread: Ho ricevuto %s \n",clientMessage);
 		Message **messages=parseMessages(clientMessage,size);
 		int i=0;
 		while(messages[i]!=NULL)
@@ -50,7 +49,7 @@ void* authorizationThread(void* arg)
 				strcpy(fifoPath,CLIENT_MESSAGE_FIFO);
 				strcat(fifoPath,message->parameters[1]);
 				
-				printf(" %s ha effettuato una richiesta di connessione\n",message->parameters[2]);
+				printf("[AUTH] %s ha effettuato una richiesta di connessione\n",message->parameters[2]);
 				
 				//apro la fifo del client
 				int clientMessageFIFO = open(fifoPath,O_RDWR);
@@ -72,7 +71,7 @@ void* authorizationThread(void* arg)
 			if(strchr(message->parameters[0],'Q')!=NULL) //notifica di disconnessione
 			{	
 				int id=atoi(message->parameters[1]);
-				printf(" %s si e' disconnesso\n",clientData[id]->name);
+				printf("[AUTH] %s si e' disconnesso\n",clientData[id]->name);
 				broadcastDisonnection(id,clientData[id]->name);		
 				disconnectClient(id);		
 			}
@@ -87,11 +86,8 @@ void* authorizationThread(void* arg)
 void* bashThread(void*arg)
 {
 	char* rawCommand = (char*)malloc(MAX_COMMAND_SIZE*sizeof(char));
-	//printf("\e[1;1H\e[2J");
-	printf("Benvenuto nel terminale utente!\nDigita help per una lista dei comandi\n");
 	while(1)
 	{
-		printf(">");
 		size_t size = MAX_COMMAND_SIZE;
 		getline(&rawCommand,&size,stdin);
 		fflush(stdin);
@@ -118,7 +114,7 @@ void* bashThread(void*arg)
 			}
 			else
 			{
-				printf("numero di parametri errato in %s: 1 parametro necessario\n",rawCommand);
+				printf("[ERROR] numero di parametri errato in %s: 1 parametro necessario\n",rawCommand);
 			}
 		}
 		else if (strstr(command->operation, "list")!=NULL) //Comando list
@@ -129,7 +125,7 @@ void* bashThread(void*arg)
 			}
 			else
 			{
-				printf("numero di parametri errato in %s: 0 parametri necessari\n",rawCommand);
+				printf("[ERROR] numero di parametri errato in %s: 0 parametri necessari\n",rawCommand);
 			}
 		}
 		else if (strstr(command->operation, "question")!=NULL) //Comando question
@@ -140,12 +136,12 @@ void* bashThread(void*arg)
 			}
 			else
 			{
-				printf("numero di parametri errato in %s: 2 parametri necessari\n",rawCommand);
+				printf("[ERROR] numero di parametri errato in %s: 2 parametri necessari\n",rawCommand);
 			}
 		}
 		else //Comandi sconosciuti
 		{
-			printf("%s:Comando non riconosciuto\n",command->operation);
+			printf("[ERROR] %s:Comando non riconosciuto\n",command->operation);
 		}
 	}
 }
@@ -208,7 +204,7 @@ void connectNewClient(int id,char* name,int fifoID)
 	clientData[id]->fifoID=fifoID;
 	clientData[id]->points=clientsMaxNumber-connectedClientsNumber;
 	connectedClientsNumber++;
-	printf("Ho accettato la richiesta di %s, e gli ho assegnato %d punti\n-Rimangono %d posti liberi\n",clientData[id]->name,clientData[id]->points,clientsMaxNumber-connectedClientsNumber);
+	printf("[AUTH] Ho accettato la richiesta di %s, e gli ho assegnato %d punti\n[INFO] Rimangono %d posti liberi\n",clientData[id]->name,clientData[id]->points,clientsMaxNumber-connectedClientsNumber);
 }
 
 //Funzione di creazione del messaggio da reinviare al client che ha richiesto di partecipare
@@ -369,7 +365,7 @@ void GenerateNewQuestion(){
 		strchr(newText,'\n')[0]='\0';
 		if(strcmp(newText,"end")==0)
 		{
-			printf("Sessione di test terminata\n\n");
+			printf("[INFO] Sessione di test terminata\n\n");
 			{
 				handler();
 			}
@@ -387,7 +383,7 @@ void GenerateNewQuestion(){
 	
 	questions[currentQuestion].question=newQuestion;
 	questions[currentQuestion].answer=answs;
-	printf("La nuova domanda e' %s, ha risposta %s\n",newText,answs);
+	printf("[GAME] La nuova domanda e' %s, ha risposta %s\n",newText,answs);
 }
 
 //Broadcast del messaggio contenente la nuova domanda a tutti i client
@@ -533,13 +529,13 @@ void kick(char* name)
 	}
 	if(kicked>=0)
 	{
-		printf("Il giocatore %s e' stato disconnesso\n",clientData[kicked]->name);
+		printf("[AUTH] Il giocatore %s e' stato disconnesso\n",clientData[kicked]->name);
 		broadcastDisonnection(kicked,clientData[kicked]->name);
 		disconnectClient(kicked);
 	}
 	else
 	{
-		printf("Nessun giocatore ha il nome specificato\n");
+		printf("[ERROR] Nessun giocatore ha il nome specificato\n");
 	}
 }
 
@@ -548,7 +544,7 @@ void listCommand()
 {
 	
 	int i;
-	printf("Ci sono %d giocatori connessi su %d posti disponibili\n",connectedClientsNumber,clientsMaxNumber);
+	printf("[INFO] Ci sono %d giocatori connessi su  un massimo di %d\n",connectedClientsNumber,clientsMaxNumber);
 	if(connectedClientsNumber>0)
 	{
 		printf("\nGiocatore\tPunteggio\n");
@@ -558,6 +554,7 @@ void listCommand()
 				printf("%s\t\t%d\n",clientData[i]->name,clientData[i]->points);
 			}	
 		}
+		printf("\n");
 	}
 }
 
@@ -593,7 +590,7 @@ void broadcastConnection(int id,char* name)
 {
 	char notification[MAX_MESSAGE_SIZE];
 	char message[MAX_MESSAGE_SIZE];
-	sprintf(message,"Il giocatore %s si e' connesso\n",name);
+	sprintf(message,"[AUTH] %s si e' connesso\n",name);
 	strcpy(notification,"N|");
 	strcat(notification,message);
 	int i;
@@ -610,7 +607,7 @@ void broadcastDisonnection(int id,char* name)
 {
 	char notification[MAX_MESSAGE_SIZE];
 	char message[MAX_MESSAGE_SIZE];
-	sprintf(message,"Il giocatore %s si e' disconnesso\n",name);
+	sprintf(message,"[AUTH] %s si e' disconnesso\n",name);
 	strcpy(notification,"N|");
 	strcat(notification,message);
 	int i;
@@ -625,6 +622,8 @@ void broadcastDisonnection(int id,char* name)
 //Terminazione del gioco, unlink delle FIFO e liberazione delle risorse
 void endGame(ClientData* winner)
 {	
+	printf("[GAME] Il giocatore %s ha vinto\n", winner->name);
+	
 	ClientData** ranking=(ClientData**)malloc(sizeof(ClientData*)*clientsMaxNumber);
 	int* done=(int*)malloc(sizeof(int)*clientsMaxNumber);
 	int i;
@@ -635,6 +634,7 @@ void endGame(ClientData* winner)
 	int j=0;
 	ClientData* best;
 	int maxIndex;
+	int printedBest=0;
 	while(1)
 	{
 		best=NULL;
@@ -681,7 +681,7 @@ void endGame(ClientData* winner)
 	}
 	
 	
-	printf("La partita e' terminata\n\n");
+	printf("[GAME] La partita e' terminata\n\n");
 	close(serverAnswerFIFO);
 	close(serverAuthFIFO);
 	unlink(SERVER_ANSWER_FIFO);
@@ -699,7 +699,6 @@ void broadcastRank(ClientData* best)
 	strcat(notification,(best->name));
 	strcat(notification," ");
 	strcat(notification,message);
-	printf("scrivo %s\n",notification);
 	int i;
 	for(i=0;i<clientsMaxNumber;i++){
 		if(clientData[i]!=NULL)

@@ -31,9 +31,9 @@ FAIL_STRING = $(NO_COLOR)[$(ERROR_COLOR)FAIL$(NO_COLOR)]
 default:
 	@clear
 	@clear
-	@echo "                     "$(WARN_COLOR)"################################"$(NO_COLOR)
-	@echo "                     "$(WARN_COLOR)"# Progetto Sistemi Operativi 1 #"$(NO_COLOR)
-	@echo "                     "$(WARN_COLOR)"################################"$(NO_COLOR)
+	@echo "                  "$(WARN_COLOR)"################################"$(NO_COLOR)
+	@echo "                  "$(WARN_COLOR)"# Progetto Sistemi Operativi 1 #"$(NO_COLOR)
+	@echo "                  "$(WARN_COLOR)"################################"$(NO_COLOR)
 	@echo
 	@echo "                               Studenti"
 	@echo "                        "$(OK_COLOR)"Simonetto "$(NO_COLOR)"| "$(OK_COLOR)"Federici"$(NO_COLOR)
@@ -54,7 +54,10 @@ default:
 	@echo "           clean viene chiamato automaticamente con l'uso di make bin"
 	@echo "   "$(ERROR_COLOR)"objects"$(NO_COLOR)": Compila i files e li rende disponibili"
 	@echo "           nella cartella bin/ SENZA richiamare la funzione clean"
-
+	@echo "   "$(ERROR_COLOR)"assets"$(NO_COLOR)": Crea la cartella assets, contenente i files da"
+	@echo "           utilizzare per la fase di testing del programma"
+	@echo "   "$(ERROR_COLOR)"test"$(NO_COLOR)": Avvia il programma in modalità testing, utilizzando i"
+	@echo "           files contenuti nella cartella assets"
 
 #Per la creazione del file build.log ho creato un wrapper per non dover far scrivere all'utente make bin |tee a.log 
 bin:
@@ -71,7 +74,7 @@ wrapper: objects
 #Creazione della cartella bin con controllo della sua esistenza per non generare errori in caso sia già presente
 bin_dir:
 	@clear
-	@date
+	date
 	@echo $(NOTIFY_STRING) Controllo della presenza cartella $(OK_COLOR)bin$(NO_COLOR)
 	@if [ -d "bin" ]; then \
 	echo $(WARN_STRING) La cartella $(OK_COLOR)bin$(NO_COLOR) esiste già; \

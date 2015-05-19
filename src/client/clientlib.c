@@ -37,7 +37,7 @@ void* userInput(void* arg)
 	{
 		if(newQuestion==1)
 		{
-			printf("La domanda e' %s\n", currentQuestion.text);
+			printf("[GAME] La domanda e' %s\n", currentQuestion.text);
 			newQuestion=0;
 		}
 		printf("La tua risposta>");
@@ -78,15 +78,15 @@ void* testInput(void* arg)
 //Funzione di validazione del nome scelto dal giocatore
 int validateUsername(char* username)
 {
-	printf("hai scelto %s\n",username);
+	printf("[INFO] hai scelto %s\n",username);
 	if(strlen(username)<MIN_USERNAME_LENGHT)
 	{
-		printf("Errore: username troppo corto\n");
+		printf("[ERROR] Errore: username troppo corto\n");
 		return -1;
 	}
 	else if(strlen(username)>MAX_USERNAME_LENGHT)
 	{
-		printf("Errore: username troppo lungo\n");
+		printf("[ERROR] Errore: username troppo lungo\n");
 		return -1;
 	}
 	else
@@ -96,7 +96,7 @@ int validateUsername(char* username)
 		{
 			if(!isalnum(username[i]))
 			{
-				printf("Errore: carattere %c non valido\n",username[i]);
+				printf("[ERROR] Errore: carattere %c non valido\n",username[i]);
 				return -1;
 			}
 		}
@@ -150,7 +150,6 @@ void sendResponse(int serverAnswerFIFO, char* answer)
 	strcat(message, currentQuestion.id);
 	strcat(message, "|");
 	strcat(message, answer);
-	//printf("SendResponse ha creato: %s\n", message);
 	write(serverAnswerFIFO,message,strlen(message)+1);
 }
 
