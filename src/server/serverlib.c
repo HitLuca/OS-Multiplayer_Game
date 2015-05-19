@@ -554,6 +554,7 @@ void listCommand()
 				printf("%s\t\t%d\n",clientData[i]->name,clientData[i]->points);
 			}	
 		}
+		printf("\n");
 	}
 }
 
@@ -621,6 +622,8 @@ void broadcastDisonnection(int id,char* name)
 //Terminazione del gioco, unlink delle FIFO e liberazione delle risorse
 void endGame(ClientData* winner)
 {	
+	printf("[GAME] Il giocatore %s ha vinto\n", winner->name);
+	
 	ClientData** ranking=(ClientData**)malloc(sizeof(ClientData*)*clientsMaxNumber);
 	int* done=(int*)malloc(sizeof(int)*clientsMaxNumber);
 	int i;
@@ -631,6 +634,7 @@ void endGame(ClientData* winner)
 	int j=0;
 	ClientData* best;
 	int maxIndex;
+	int printedBest=0;
 	while(1)
 	{
 		best=NULL;
