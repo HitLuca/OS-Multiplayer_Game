@@ -206,7 +206,7 @@ int main(int argc, char** argv)
 							else if(strchr(message->parameters[0],'Q')!=NULL) //nuova domanda
 							{
 								setNewQuestion(message);
-								if(waitingForUserInput==1) //se il thread è bloccato in attesa di una risposta dall utente
+								if(waitingForUserInput==1 && testRun==0) //se il thread è bloccato in attesa di una risposta dall utente
 								{
 									printf("\n");
 									waitingForUserInput=0;
@@ -225,7 +225,7 @@ int main(int argc, char** argv)
 							else if(strchr(message->parameters[0],'N')!=NULL) //messaggio di notifica
 							{
 								printf("\n%s",message->parameters[1]);
-								if(waitingForUserInput==1 && endGame==0) //se il thread è bloccato in attesa di una risposta dall utente
+								if(waitingForUserInput==1 && endGame==0 && testRun==0) //se il thread è bloccato in attesa di una risposta dall utente
 								{
 									waitingForUserInput=0;
 									if (pthread_cancel(bash)!=0)//lo chiudo

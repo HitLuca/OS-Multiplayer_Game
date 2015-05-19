@@ -12,6 +12,7 @@
 #define MAX_QUESTION_NUM 100
 #define MAX_WAIT 300
 #define CORRECT_PERCENTAGE 60
+#define MIN_OFFSET 500
 
 void GenerateNewQuestion(int index);
 
@@ -81,6 +82,7 @@ int main(int argc,char** argv)
 	{
 		chosen=rand()%clientsNumber;
 		delay=rand()%MAX_WAIT;
+		delay+=MIN_OFFSET;
 		timePassed+=delay;
 		
 		fprintf(playerFile[chosen],"%d\n",(int)(timePassed-lastInteraction[chosen]));
@@ -102,7 +104,7 @@ int main(int argc,char** argv)
 			{
 				fprintf(playerFile[chosen],"%s\n",answers[currentQuestion]);
 				
-				fprintf(logFile,"[GAME] Player%d ha risposto %s alla domanda %s\n",chosen,answers[currentQuestion],questions[currentQuestion]);
+				fprintf(logFile,"[GAME] Player%d ha risposto %s alla domanda %s\n",chosen+1,answers[currentQuestion],questions[currentQuestion]);
 				if(currentQuestion<questionNumber)
 				{
 					fprintf(logFile,"[GAME] La nuova domanda e' %s, ha risposta %s\n",questions[currentQuestion+1],answers[currentQuestion+1]);
