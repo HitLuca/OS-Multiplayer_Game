@@ -11,7 +11,7 @@
 
 #include "clientlib.h"
 
-int main()
+int main(int argc, char** argv)
 {
 	struct sigaction sa;
 	sa.sa_handler = &handler;
@@ -26,9 +26,11 @@ int main()
 	//provo ad aprire la fifo di autorizzazione del server
 	serverAuthFIFO = open(SERVER_AUTHORIZATION_FIFO,O_WRONLY);
 	
+	printf("\e[1;1H\e[2J");
+
 	if(serverAuthFIFO==-1 )	//se la fifo non è presente significa che non vi è nessun server
 	{
-		printf("Server non presente\n");
+		printf("[ERROR] Server non presente\n");
 		return 1;
 	}
 	else	
@@ -45,14 +47,22 @@ int main()
 		//se l'apertura non va a buon fine stampo un errore
 		if(inMessageFIFO==-1)
 		{
-		printf("Errore di apertura FIFO\n");
+		printf("[ERROR] Errore di apertura FIFO\n");
 		return 0;
 		}
 		
 		//chiedo all'utente di inserire un username
-		testRun=1; //TODO imposto se è una run di test
+		if (strcmp(argv[1],"0")!=0)
+		{	
+			testRun = atoi(argv[1]);
+		}
+		else
+		{
+			testRun=0;
+		}
+		
 		char* testFileName=(char*)malloc(sizeof(char)*10);
-		strcpy(testFileName,"1");
+		strcpy(testFileName,argv[1]);
 		
 		char* username=(char*)malloc(sizeof(char)*MAX_USERNAME_LENGHT);
 		size_t size=MAX_USERNAME_LENGHT;
@@ -78,7 +88,7 @@ int main()
 			testFile = fopen(filePath,"r");
 			if(testFile==NULL)
 			{
-				printf("Errore apertura file di test\n\n");
+				printf("[ERROR] Errore apertura file di test\n\n");
 				return 0;
 			}
 			int size = 20;
@@ -98,14 +108,13 @@ int main()
 			//aspetto una risposta
 			char answerBuffer[MAX_MESSAGE_SIZE];
 			read(inMessageFIFO,answerBuffer,MAX_MESSAGE_SIZE);
-			printf("%s\n",answerBuffer);
 			Message *answer = parseMessage(answerBuffer);
 			
 			int answerResult = checkServerAuthResponse(answer);
 			
 			if(answerResult<0)
 			{
-				printf("Errore %d\n",answerResult); //TODO gestire i codici di errore
+				printf("[ERROR] Errore %d\n",answerResult); //TODO gestire i codici di errore
 				deallocResources();
 				return answerResult;
 			}
@@ -116,12 +125,12 @@ int main()
 				
 				if(serverAnswerFIFO == -1)
 				{
-					printf("Errore di connessione al server\n");
+					printf("[ERROR] Errore di connessione al server\n");
 					deallocResources();
 					return 0;
 				}
 				
-				printf("Connessione Riuscita\n");
+				printf("[INFO] Connessione Riuscita\n");
 				
 				//inizializzo le variabili
 				connected=1;
@@ -130,7 +139,7 @@ int main()
 				initializeClientData(answer);
 				initializeQuestion(answer);
 				
-				printf("Il server mi ha assegnato l'id %s e %s punti\n",clientData->id,clientData->points);
+				printf("[INFO] Il server mi ha assegnato %s punti\n",clientData->points);
 
 				//Componenti del thread bash
 				pthread_t bash;
@@ -168,31 +177,31 @@ int main()
 							
 							if(strchr(message->parameters[0],'K')!=NULL) //messaggio di kick
 							{
-								printf("\nEspulso dal server\n");
+								printf("\n[AUTH] Espulso dal server\n");
 								deallocResources();
 								return 0;
 							}
 							else if(strchr(message->parameters[0],'D')!=NULL) //server chiuso
 							{
-								printf("\nIl server e' stato chiuso\n");
+								printf("\n[ERROR] Il server e' stato chiuso\n");
 								deallocResources();
 								return 0;
 							}
 							else if(strchr(message->parameters[0],'W')!=NULL) //risposta sbagliata
 							{
-								printf("-Risposta Sbagliata!\n");
-								printf("-Ora hai %s punti\n",message->parameters[2]);
+								printf("[GAME] Risposta Sbagliata!\n");
+								printf("[INFO] Ora hai %s punti\n",message->parameters[2]);
 								pthread_mutex_unlock(&mutex);
 							}
 							else if(strchr(message->parameters[0],'C')!=NULL) //risposta giusta
 							{
-								printf("-Risposta Corretta!\n");
-								printf("-Ora hai %s punti\n",message->parameters[2]);
+								printf("[GAME] Risposta Corretta!\n");
+								printf("[INFO] Ora hai %s punti\n",message->parameters[2]);
 							}
 							else if(strchr(message->parameters[0],'T')!=NULL) //risposta giusta ma in ritardo
 							{
-								printf("-Qualcuno ha risposto correttamente prima di te!\n");
-								printf("-Ora hai %s punti\n",message->parameters[2]);
+								printf("[GAME] Qualcuno ha risposto correttamente prima di te!\n");
+								printf("[INFO] Ora hai %s punti\n",message->parameters[2]);
 							}
 							else if(strchr(message->parameters[0],'Q')!=NULL) //nuova domanda
 							{
@@ -203,7 +212,7 @@ int main()
 									waitingForUserInput=0;
 									if (pthread_cancel(bash)!=0)//lo chiudo
 									{
-										printf("Impossibile terminare il thread bash :(\n");
+										printf("[ERROR] Impossibile terminare il thread bash :(\n");
 									}
 									//e lo ricreo
 									pthread_create (&bash, NULL, &userInput, &arg);
@@ -221,7 +230,7 @@ int main()
 									waitingForUserInput=0;
 									if (pthread_cancel(bash)!=0)//lo chiudo
 									{
-										printf("Impossibile terminare il thread bash :(\n");
+										printf("[ERROR] Impossibile terminare il thread bash\n");
 									}
 									//e lo ricreo
 									pthread_create (&bash, NULL, &userInput, &arg);
@@ -229,12 +238,12 @@ int main()
 							}
 							else if(strchr(message->parameters[0],'R')!=NULL) //fine partita e classifica
 							{
-								printf("\nLa partita si e' conclusa\nNome Punteggio\n----------------\n");
+								printf("\n[GAME] La partita si e' conclusa\nNome Punteggio\n----------------\n");
 								endGame=1;
 								printf("%s\n",message->parameters[1]);
 								if (pthread_cancel(bash)!=0) //chiudo il thread bash
 								{
-									printf("Impossibile terminare il thread bash :(\n");
+									printf("[ERROR] Impossibile terminare il thread bash :(\n");
 								}
 								deallocResources();	
 								printf("\n");					
@@ -242,7 +251,7 @@ int main()
 							}
 							else
 							{
-								printf("Messaggio sconosciuto ricevuto: %s \n",message->parameters[0]);
+								printf("[ERROR] Messaggio sconosciuto ricevuto: %s \n",message->parameters[0]);
 								deallocResources();
 								return 0;
 							}
@@ -252,7 +261,7 @@ int main()
 					}
 					else // altrimenti se ricevo un errore mi chiudo preventivamente
 					{
-						printf("Errore in lettura messaggio server\n");
+						printf("[ERROR] Errore in lettura messaggio server\n");
 						deallocResources();
 						return 0;
 					}
@@ -260,7 +269,7 @@ int main()
 			}
 		} else {
 			deallocResources();
-			printf("Errore richiesta autorizzazione\n");
+			printf("[ERROR]Errore richiesta autorizzazione\n");
 		}
 	}
 	return 0;

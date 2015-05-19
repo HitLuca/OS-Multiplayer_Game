@@ -20,16 +20,15 @@ int main(int argc,char **argv)
 	struct sigaction sa;
 	sa.sa_handler = &handler;
 	  
-	//sigaction (SIGKILL, &sa, NULL);
-	//sigaction (SIGABRT, &sa, NULL);
-	//sigaction (SIGQUIT, &sa, NULL);
-	//sigaction (SIGINT, &sa, NULL);
-	//sigaction (SIGSEGV, &sa, NULL);
-	
+	sigaction (SIGKILL, &sa, NULL);
+	sigaction (SIGABRT, &sa, NULL);
+	sigaction (SIGQUIT, &sa, NULL);
+	sigaction (SIGINT, &sa, NULL);
+	sigaction (SIGSEGV, &sa, NULL);
 	//Check se il server è gia avviato
 	if (mkfifo(SERVER_AUTHORIZATION_FIFO,FILE_MODE)!=0)
 	{
-		printf("Server gia presente\n");
+		printf("[ERRORE] Server gia presente\n");
 		return 0;
 	}
 	else
@@ -39,7 +38,6 @@ int main(int argc,char **argv)
 		currentQuestion=0;
 		
 		//TODO settare con il valore passato
-		testRun=1;
 		
 		//Se la variabile max è presente la setto
 		if (strcmp(argv[1],"0")!=0)
@@ -63,6 +61,15 @@ int main(int argc,char **argv)
 			winPoints = WIN_POINTS;
 		}
 
+		if (strcmp(argv[3],"0")!=0)
+		{	
+			testRun = 1;
+		}
+		else
+		{
+			testRun=0;
+		}
+
 		if(testRun==1)
 		{
 			char filePath[1000];
@@ -70,10 +77,13 @@ int main(int argc,char **argv)
 			testFile = fopen(filePath,"r");
 			if(testFile==NULL)
 			{
-				printf("Errore apertura file di test\n\n");
+				printf("[ERRORE] Errore apertura file di test\n\n");
 				return 0;
 			}
 		}
+
+		printf("\e[1;1H\e[2J");
+		printf("Benvenuto nel terminale utente!\nDigita help per una lista dei comandi\n");
 
 		//Creo il thread con la parte di autorizzazione
 		pthread_t authorization;
@@ -110,11 +120,9 @@ int main(int argc,char **argv)
 			{
 				Message* answer = messages[i];
 				i++;
-				printf("%s ha risposto %s alla domanda con ID %s\n", clientData[atoi(answer->parameters[0])]->name, answer->parameters[2],  questions[atoi(answer->parameters[1])].question->text);
+				printf("[GAME] %s ha risposto %s alla domanda %s\n", clientData[atoi(answer->parameters[0])]->name, answer->parameters[2],  questions[atoi(answer->parameters[1])].question->text);
 				
-				int result = checkAnswer(answer);
-				printf("result: %d\n", result);
-				
+				int result = checkAnswer(answer);				
 				ClientData* client = getSender(answer);
 
 				//Check della risposta del client
