@@ -82,7 +82,8 @@ test:
 	@make launchClients.o
 	$(CC) $(CFLAGS) bin/test/launchClients.o -o bin/test/launchClients
 	@make assets_clean
-	./bin/startGame --server --test > logs/serverOutput.log &
+	cd bin && ./startGame --server --test > ../logs/serverOutput.log
+	cd bin/test && ./launchClients $(TEST_CLIENT) > ../../logs/clientOutput.log
 
 game_wrapper: 
 	@clear
