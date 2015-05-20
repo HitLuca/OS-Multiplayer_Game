@@ -15,7 +15,7 @@
 void handler ()
 {  
 	deallocResources();
-	printf("\n");
+	printScreen(colorRun, DEFAULT, "\n");
 	if(connected==1)
 	{
 		char disconnectMessage[MAX_MESSAGE_SIZE];
@@ -37,10 +37,11 @@ void* userInput(void* arg)
 	{
 		if(newQuestion==1)
 		{
-			printf("[GAME] La domanda e' %s\n", currentQuestion.text);
+			sprintf(stringBuffer, "La domanda e' %s\n", currentQuestion.text);
+			printScreen(colorRun, GAME, stringBuffer);
 			newQuestion=0;
 		}
-		printf("La tua risposta>");
+		printScreen(colorRun, DEFAULT, "La tua risposta>");
 		waitingForUserInput=1;
 		getline(&input,&size,stdin);
 		strchr(input,'\n')[0]='\0';
@@ -78,15 +79,16 @@ void* testInput(void* arg)
 //Funzione di validazione del nome scelto dal giocatore
 int validateUsername(char* username)
 {
-	printf("[INFO] hai scelto %s\n",username);
+	sprintf(stringBuffer, "Hai scelto %s\n",username);
+	printScreen(colorRun, INFO, stringBuffer);
 	if(strlen(username)<MIN_USERNAME_LENGHT)
 	{
-		printf("[ERROR] Errore: username troppo corto\n");
+		printScreen(colorRun, ERROR, "Username troppo corto\n");
 		return -1;
 	}
 	else if(strlen(username)>MAX_USERNAME_LENGHT)
 	{
-		printf("[ERROR] Errore: username troppo lungo\n");
+		printScreen(colorRun, ERROR, "Username troppo lungo\n");
 		return -1;
 	}
 	else
@@ -96,7 +98,8 @@ int validateUsername(char* username)
 		{
 			if(!isalnum(username[i]))
 			{
-				printf("[ERROR] Errore: carattere %c non valido\n",username[i]);
+				sprintf(stringBuffer, "Carattere %c non valido\n",username[i]);
+				printScreen(colorRun, DEFAULT, stringBuffer);
 				return -1;
 			}
 		}

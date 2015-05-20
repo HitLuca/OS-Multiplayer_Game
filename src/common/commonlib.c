@@ -78,3 +78,69 @@ Message** parseMessages(char *rawMessages,int size){
 	messages[j]=NULL;
 	return messages;
 }
+
+void printScreen(int color, tags tag, char* message)
+{
+	if (color==1)
+	{
+		switch(tag)
+		{
+			case GAME:
+			{
+				printf("[" COLOR_GREEN "GAME" COLOR_RESET "] %s", message);
+				break;
+			}
+			case INFO:
+			{
+				printf("[" COLOR_YELLOW "INFO"  COLOR_RESET "] %s", message);
+				break;
+			}
+			case ERROR:
+			{
+				printf("[" COLOR_RED "ERROR"  COLOR_RESET "] %s", message);
+				break;
+			}
+			case AUTH:
+			{
+				printf("[" COLOR_CYAN "AUTH"  COLOR_RESET "] %s", message);
+				break;
+			}
+			case DEFAULT:
+			{
+				printf("%s", message);
+				break;
+			}
+		}
+	}
+	else
+	{
+		switch(tag)
+		{
+			case GAME:
+			{
+				printf("[GAME] %s", message);
+				break;
+			}
+			case INFO:
+			{
+				printf("[INFO] %s", message);
+				break;
+			}
+			case ERROR:
+			{
+				printf("[ERROR] %s", message);
+				break;
+			}
+			case AUTH:
+			{
+				printf("[AUTH] %s", message);
+				break;
+			}
+			case DEFAULT:
+			{
+				printf("%s", message);
+				break;
+			}
+		}
+	}
+}

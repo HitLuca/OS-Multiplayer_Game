@@ -42,6 +42,7 @@ int currentQuestion;
 QuestionData questions[QUESTION_ID];
 ClientData** clientData;
 int testRun;
+int colorRun;
 FILE* testFile;
 
 //Funzioni lato server

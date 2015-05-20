@@ -14,9 +14,8 @@
 //Array di argomenti da passare al sender (nomeFIFOclient e messaggio)
 //METTERE A POSTO WTF
 
-int main(int argc,char **argv)
+int main(int argc,char **argv) //server --max --win --test --color
 {
-	
 	struct sigaction sa;
 	sa.sa_handler = &handler;
 	  
@@ -28,7 +27,7 @@ int main(int argc,char **argv)
 	//Check se il server è gia avviato
 	if (mkfifo(SERVER_AUTHORIZATION_FIFO,FILE_MODE)!=0)
 	{
-		printf("[ERRORE] Server gia presente\n");
+		printScreen(colorRun, ERROR, "Server gia presente\n");
 		return 0;
 	}
 	else
@@ -70,6 +69,15 @@ int main(int argc,char **argv)
 			testRun=0;
 		}
 
+		if (strcmp(argv[4],"0")!=0)
+		{	
+			colorRun = 1;
+		}
+		else
+		{
+			colorRun = 0;
+		}
+
 		if(testRun==1)
 		{
 			char filePath[1000];
@@ -77,13 +85,14 @@ int main(int argc,char **argv)
 			testFile = fopen(filePath,"r");
 			if(testFile==NULL)
 			{
-				printf("[ERRORE] Errore apertura file di test\n\n");
+				printScreen(colorRun, ERROR, "Errore apertura file di test\n\n");
 				return 0;
 			}
 		}
 
-		printf("\e[1;1H\e[2J");
-		printf("Benvenuto nel terminale utente!\nDigita help per una lista dei comandi\n");
+		printScreen(colorRun, DEFAULT, "\e[1;1H\e[2J");
+		printScreen(colorRun, DEFAULT, "Benvenuto nel terminale utente!\n");
+		printScreen(colorRun, DEFAULT, "Digita help per una lista dei comandi\n");
 
 		//Creo il thread con la parte di autorizzazione
 		pthread_t authorization;
@@ -120,7 +129,9 @@ int main(int argc,char **argv)
 			{
 				Message* answer = messages[i];
 				i++;
-				printf("[GAME] %s ha risposto %s alla domanda %s\n", clientData[atoi(answer->parameters[0])]->name, answer->parameters[2],  questions[atoi(answer->parameters[1])].question->text);
+
+				sprintf(stringBuffer, "%s ha risposto %s alla domanda %s\n", clientData[atoi(answer->parameters[0])]->name, answer->parameters[2],  questions[atoi(answer->parameters[1])].question->text);
+				printScreen(colorRun, GAME, stringBuffer);
 				
 				int result = checkAnswer(answer);				
 				ClientData* client = getSender(answer);

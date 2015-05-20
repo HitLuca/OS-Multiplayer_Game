@@ -29,6 +29,7 @@ int newQuestion;
 int endGame;
 FILE* testFile;
 int testRun;
+int colorRun;
 
 //Funzioni lato client
 void* userInput(void* arg);

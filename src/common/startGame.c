@@ -62,19 +62,23 @@ void check_side(int argc, char** argv) {
 void server_side(int argc, char** argv) {
     char max[3]="0";
     char win[3]="0";
-    char test[3]="0";
+    char testString[2]="0";
+    char colorString[2]="0";
 
     int iOptarg;
     int opt=0;
+    int test=0;
+    int color=0;
 
     static struct option server_options[] = {
         {"max",    required_argument, 0,  'm' },
         {"win",   required_argument, 0,  'w' },
         {"test", no_argument, 0, 't'},
+        {"color", no_argument, 0, 'c'},
     };
 
     int long_index =1;
-    while ((opt = getopt_long(argc, argv,"m:w:t::", server_options, &long_index )) != -1) {
+    while ((opt = getopt_long(argc, argv,"m:w:t::c::", server_options, &long_index )) != -1) {
         switch (opt) {
             case 'm' :
             {
@@ -117,7 +121,14 @@ void server_side(int argc, char** argv) {
             }
             case 't' :
             {
-                strcpy(test, "1");
+                strcpy(testString, "1");
+                test=1;
+                break;
+            }
+            case 'c' :
+            {
+                strcpy(colorString, "1");
+                color=1;
                 break;
             }
             default:
@@ -126,21 +137,33 @@ void server_side(int argc, char** argv) {
             }
         }
     }
-    execl("./server", "./server", max, win, test, (char *) NULL);
+    if (test==1 && color==1)
+    {
+        printf("Errore, impossibile avviare il programma in modalità test e color in contemporanea\n");
+    }
+    else
+    {
+        execl("./server", "./server", max, win, testString, colorString, (char *) NULL);
+    }
 }
 
 //Avvio dell'eseguibile lato client, senza argomenti
 void client_side(int argc, char** argv) {
-    char number[3]="0";
+    char testString[3]="0";
+    char colorString[2]="0";
     int opt=0;
     int iOptarg;
 
+    int test=0;
+    int color=0;
+
     static struct option client_options[] = {
         {"test", required_argument, 0, 't'},
+        {"color", no_argument, 0, 'c'},
     };
 
     int long_index =1;
-    while ((opt = getopt_long(argc, argv,"t:", client_options, &long_index )) != -1) {
+    while ((opt = getopt_long(argc, argv,"t:c::", client_options, &long_index )) != -1) {
         switch (opt) {
             case 't' :
             {
@@ -152,13 +175,20 @@ void client_side(int argc, char** argv) {
                 }
                 else if (iOptarg<=CLIENT_LIMIT)
                 {
-                    sprintf(number, "%d", iOptarg);
+                    sprintf(testString, "%d", iOptarg);
                 }
                 else
                 {
                     printf("Errore, l'argomento di test è troppo grande\n");
                     exit(EXIT_FAILURE);
                 }
+                test=1;
+                break;
+            }
+            case 'c' :
+            {
+                strcpy(colorString, "1");
+                color=1;
                 break;
             }
             default:
@@ -167,7 +197,14 @@ void client_side(int argc, char** argv) {
             }
         }
     }
-    execl("./client", "./client", number, (char *) NULL);
+    if(test==1 && color==1)
+    {
+        printf("Errore, impossibile avviare il programma in modalità test e color in contemporanea\n");
+    }
+    else
+    {
+        execl("./client", "./client", testString, colorString, (char *) NULL);
+    }
 }
 
 //Funzione di notifica del corretto funzionamento del programma

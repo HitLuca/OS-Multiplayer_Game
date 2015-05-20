@@ -11,7 +11,7 @@
 
 #include "clientlib.h"
 
-int main(int argc, char** argv)
+int main(int argc, char** argv) //client --test --color
 {
 	struct sigaction sa;
 	sa.sa_handler = &handler;
@@ -26,11 +26,11 @@ int main(int argc, char** argv)
 	//provo ad aprire la fifo di autorizzazione del server
 	serverAuthFIFO = open(SERVER_AUTHORIZATION_FIFO,O_WRONLY);
 	
-	printf("\e[1;1H\e[2J");
+	printScreen(colorRun, DEFAULT, "\e[1;1H\e[2J");
 
 	if(serverAuthFIFO==-1 )	//se la fifo non è presente significa che non vi è nessun server
 	{
-		printf("[ERROR] Server non presente\n");
+		printScreen(colorRun, ERROR, "Server non presente\n");
 		return 1;
 	}
 	else	
@@ -47,11 +47,11 @@ int main(int argc, char** argv)
 		//se l'apertura non va a buon fine stampo un errore
 		if(inMessageFIFO==-1)
 		{
-		printf("[ERROR] Errore di apertura FIFO\n");
+		printScreen(colorRun, ERROR, "Errore di apertura FIFO\n");
 		return 0;
 		}
 		
-		//chiedo all'utente di inserire un username
+		//Leggo i parametri
 		if (strcmp(argv[1],"0")!=0)
 		{	
 			testRun = atoi(argv[1]);
@@ -59,6 +59,15 @@ int main(int argc, char** argv)
 		else
 		{
 			testRun=0;
+		}
+
+		if (strcmp(argv[2],"0")!=0)
+		{	
+			colorRun = 1;
+		}
+		else
+		{
+			colorRun = 0;
 		}
 		
 		char* testFileName=(char*)malloc(sizeof(char)*10);
@@ -72,7 +81,7 @@ int main(int argc, char** argv)
 			int correctUsername=-1;
 			while(correctUsername==-1)
 			{
-				printf("Inserisci il tuo username> ");
+				printScreen(colorRun, DEFAULT, "Inserisci il tuo username> ");
 				getline(&username,&size,stdin);
 				strchr(username,'\n')[0]='\0';
 				fflush(stdin);
@@ -88,7 +97,7 @@ int main(int argc, char** argv)
 			testFile = fopen(filePath,"r");
 			if(testFile==NULL)
 			{
-				printf("[ERROR] Errore apertura file di test\n\n");
+				printScreen(colorRun, ERROR, "Errore apertura file di test\n\n");
 				return 0;
 			}
 			int size = 20;
@@ -114,7 +123,8 @@ int main(int argc, char** argv)
 			
 			if(answerResult<0)
 			{
-				printf("[ERROR] Errore %d\n",answerResult); //TODO gestire i codici di errore
+				sprintf(stringBuffer, "Errore %d\n",answerResult); //TODO gestire i codici di errore
+				printScreen(colorRun, ERROR, stringBuffer);
 				deallocResources();
 				return answerResult;
 			}
@@ -125,12 +135,12 @@ int main(int argc, char** argv)
 				
 				if(serverAnswerFIFO == -1)
 				{
-					printf("[ERROR] Errore di connessione al server\n");
+					printScreen(colorRun, ERROR, "Errore di connessione al server\n");
 					deallocResources();
 					return 0;
 				}
 				
-				printf("[INFO] Connessione Riuscita\n");
+				printScreen(colorRun, INFO, "Connessione Riuscita\n");
 				
 				//inizializzo le variabili
 				connected=1;
@@ -139,7 +149,8 @@ int main(int argc, char** argv)
 				initializeClientData(answer);
 				initializeQuestion(answer);
 				
-				printf("[INFO] Il server mi ha assegnato %s punti\n",clientData->points);
+				sprintf(stringBuffer, "Il server mi ha assegnato %s punti\n",clientData->points);
+				printScreen(colorRun, INFO, stringBuffer);
 
 				//Componenti del thread bash
 				pthread_t bash;
@@ -177,42 +188,45 @@ int main(int argc, char** argv)
 							
 							if(strchr(message->parameters[0],'K')!=NULL) //messaggio di kick
 							{
-								printf("\n[AUTH] Espulso dal server\n");
+								printScreen(colorRun, AUTH, "Espulso dal server\n");
 								deallocResources();
 								return 0;
 							}
 							else if(strchr(message->parameters[0],'D')!=NULL) //server chiuso
 							{
-								printf("\n[ERROR] Il server e' stato chiuso\n");
+								printScreen(colorRun, ERROR, "Il server e' stato chiuso\n");
 								deallocResources();
 								return 0;
 							}
 							else if(strchr(message->parameters[0],'W')!=NULL) //risposta sbagliata
 							{
-								printf("[GAME] Risposta Sbagliata!\n");
-								printf("[INFO] Ora hai %s punti\n",message->parameters[2]);
+								printScreen(colorRun, GAME, "Risposta Sbagliata!\n");
+								sprintf(stringBuffer, "Ora hai %s punti\n",message->parameters[2]);
+								printScreen(colorRun, INFO, stringBuffer);
 								pthread_mutex_unlock(&mutex);
 							}
 							else if(strchr(message->parameters[0],'C')!=NULL) //risposta giusta
 							{
-								printf("[GAME] Risposta Corretta!\n");
-								printf("[INFO] Ora hai %s punti\n",message->parameters[2]);
+								printScreen(colorRun, GAME, "Risposta Corretta!\n");
+								sprintf(stringBuffer, "Ora hai %s punti\n",message->parameters[2]);
+								printScreen(colorRun, INFO, stringBuffer);
 							}
 							else if(strchr(message->parameters[0],'T')!=NULL) //risposta giusta ma in ritardo
 							{
-								printf("[GAME] Qualcuno ha risposto correttamente prima di te!\n");
-								printf("[INFO] Ora hai %s punti\n",message->parameters[2]);
+								printScreen(colorRun, GAME, "Qualcuno ha risposto correttamente prima di te!\n");
+								sprintf(stringBuffer, "Ora hai %s punti\n",message->parameters[2]);
+								printScreen(colorRun, INFO, stringBuffer);
 							}
 							else if(strchr(message->parameters[0],'Q')!=NULL) //nuova domanda
 							{
 								setNewQuestion(message);
 								if(waitingForUserInput==1 && testRun==0) //se il thread è bloccato in attesa di una risposta dall utente
 								{
-									printf("\n");
+									printScreen(colorRun, DEFAULT, "\n");
 									waitingForUserInput=0;
 									if (pthread_cancel(bash)!=0)//lo chiudo
 									{
-										printf("[ERROR] Impossibile terminare il thread bash :(\n");
+										printScreen(colorRun, ERROR, "Impossibile terminare il thread bash\n");
 									}
 									//e lo ricreo
 									pthread_create (&bash, NULL, &userInput, &arg);
@@ -224,13 +238,15 @@ int main(int argc, char** argv)
 							}
 							else if(strchr(message->parameters[0],'N')!=NULL) //messaggio di notifica
 							{
-								printf("\n%s",message->parameters[1]);
+								sprintf(stringBuffer, "%s",message->parameters[1]);
+								printScreen(colorRun, DEFAULT, "\n");
+								printScreen(colorRun, INFO, stringBuffer);
 								if(waitingForUserInput==1 && endGame==0 && testRun==0) //se il thread è bloccato in attesa di una risposta dall utente
 								{
 									waitingForUserInput=0;
 									if (pthread_cancel(bash)!=0)//lo chiudo
 									{
-										printf("[ERROR] Impossibile terminare il thread bash\n");
+										printScreen(colorRun, ERROR, "Impossibile terminare il thread bash\n");
 									}
 									//e lo ricreo
 									pthread_create (&bash, NULL, &userInput, &arg);
@@ -238,20 +254,22 @@ int main(int argc, char** argv)
 							}
 							else if(strchr(message->parameters[0],'R')!=NULL) //fine partita e classifica
 							{
-								printf("\n[GAME] La partita si e' conclusa\nNome Punteggio\n----------------\n");
+								printScreen(colorRun, GAME, "La partita si e' conclusa\nNome Punteggio\n----------------\n");
 								endGame=1;
-								printf("%s\n",message->parameters[1]);
+								sprintf(stringBuffer, "%s\n",message->parameters[1]);
+								printScreen(colorRun, DEFAULT, stringBuffer);
 								if (pthread_cancel(bash)!=0) //chiudo il thread bash
 								{
-									printf("[ERROR] Impossibile terminare il thread bash :(\n");
+									printScreen(colorRun, ERROR, "Impossibile terminare il thread bash :(\n");
 								}
 								deallocResources();	
-								printf("\n");					
+								printScreen(colorRun, DEFAULT, "\n");					
 								return 0;		
 							}
 							else
 							{
-								printf("[ERROR] Messaggio sconosciuto ricevuto: %s \n",message->parameters[0]);
+								sprintf(stringBuffer, "Messaggio sconosciuto ricevuto: %s \n",message->parameters[0]);
+								printScreen(colorRun, ERROR, stringBuffer);
 								deallocResources();
 								return 0;
 							}
@@ -261,7 +279,7 @@ int main(int argc, char** argv)
 					}
 					else // altrimenti se ricevo un errore mi chiudo preventivamente
 					{
-						printf("[ERROR] Errore in lettura messaggio server\n");
+						printScreen(colorRun, ERROR, "Errore in lettura messaggio server\n");
 						deallocResources();
 						return 0;
 					}
@@ -269,7 +287,7 @@ int main(int argc, char** argv)
 			}
 		} else {
 			deallocResources();
-			printf("[ERROR]Errore richiesta autorizzazione\n");
+			printScreen(colorRun, ERROR, "Errore richiesta autorizzazione\n");
 		}
 	}
 	return 0;
