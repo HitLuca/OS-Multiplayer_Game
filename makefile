@@ -8,9 +8,10 @@ CC=gcc
 COMMON=src/common
 SERVER=src/server
 CLIENT=src/client
+TEST=src/test
 
 #Files oggetto da usare per la compilazione del programma
-OBJECTS=serverlib.o clientlib.o commonlib.o client.o server.o startGame.o
+OBJECTS=serverlib.o clientlib.o commonlib.o client.o server.o startGame.o launchClients.o testGenerator.o
 
 #Flags usate nella compilazione, in questo caso -pthread permette di utilizzare i threads
 CFLAGS=-pthread
@@ -70,48 +71,102 @@ wrapper: objects
 	@echo $(NOTIFY_STRING) Fine
 
 #Creazione della cartella bin con controllo della sua esistenza per non generare errori in caso sia già presente
-bin_dir:
+dirs:
 	@clear
 	date
 	@echo $(NOTIFY_STRING) Controllo della presenza cartella $(OK_COLOR)bin$(NO_COLOR)
 	@if [ -d "bin" ]; then \
 	echo $(WARN_STRING) La cartella $(OK_COLOR)bin$(NO_COLOR) esiste già; \
+	else \
+	echo $(NOTIFY_STRING) Creazione cartella $(OK_COLOR)bin$(NO_COLOR); \
+	mkdir -p bin; \
 	fi
-	@echo $(NOTIFY_STRING) Creazione cartella $(OK_COLOR)bin$(NO_COLOR)
-	mkdir -p bin
+
+	@echo $(NOTIFY_STRING) Controllo della presenza cartella $(OK_COLOR)bin/game$(NO_COLOR)
+	@if [ -d "bin/game" ]; then \
+	echo $(WARN_STRING) La cartella $(OK_COLOR)bin/game$(NO_COLOR) esiste già; \
+	else \
+	echo $(NOTIFY_STRING) Creazione cartella $(OK_COLOR)bin/game$(NO_COLOR) ; \
+	mkdir -p bin/game ; \
+	fi
+
+	@echo $(NOTIFY_STRING) Controllo della presenza cartella $(OK_COLOR)bin/test$(NO_COLOR)
+	@if [ -d "bin/test" ]; then \
+	echo $(WARN_STRING) La cartella $(OK_COLOR)bin/test$(NO_COLOR) esiste già; \
+	else \
+	echo $(NOTIFY_STRING) Creazione cartella $(OK_COLOR)bin/test$(NO_COLOR); \
+	mkdir -p bin/test; \
+	fi
+
+	@echo $(NOTIFY_STRING) Controllo della presenza cartella $(OK_COLOR)assets$(NO_COLOR)
+	@if [ -d "assets" ]; then \
+	echo $(WARN_STRING) La cartella $(OK_COLOR)assets$(NO_COLOR) esiste già; \
+	else \
+	echo $(NOTIFY_STRING) Creazione cartella $(OK_COLOR)assets$(NO_COLOR); \
+	mkdir -p assets; \
+	fi
+
+	@echo $(NOTIFY_STRING) Controllo della presenza cartella $(OK_COLOR)assets/client$(NO_COLOR)
+	@if [ -d "assets/client" ]; then \
+	echo $(WARN_STRING) La cartella $(OK_COLOR)assets/client$(NO_COLOR) esiste già; \
+	else \
+	echo $(NOTIFY_STRING) Creazione cartella $(OK_COLOR)assets/client$(NO_COLOR); \
+	mkdir -p assets/client; \
+	fi
+
+	@echo $(NOTIFY_STRING) Controllo della presenza cartella $(OK_COLOR)assets/server$(NO_COLOR)
+	@if [ -d "assets/server" ]; then \
+	echo $(WARN_STRING) La cartella $(OK_COLOR)assets/server$(NO_COLOR) esiste già; \
+	else \
+	echo $(NOTIFY_STRING) Creazione cartella $(OK_COLOR)assets/server$(NO_COLOR); \
+	mkdir -p assets/server; \
+	fi
+
 	@echo $(NOTIFY_STRING) Creazione files oggetto
 
 #Creazione dei file linkati client server e startGame, necessari i file oggetto (*.o)
-objects: bin_dir $(OBJECTS)
+objects: dirs $(OBJECTS)
 	@echo $(NOTIFY_STRING) Compilazione files oggetto
-	$(CC) $(CFLAGS) bin/server.o bin/serverlib.o bin/commonlib.o -o bin/server
-	$(CC) $(CFLAGS) bin/client.o bin/clientlib.o bin/commonlib.o -o bin/client
+	$(CC) $(CFLAGS) bin/game/server.o bin/game/serverlib.o bin/game/commonlib.o -o bin/game/server
+	$(CC) $(CFLAGS) bin/game/client.o bin/game/clientlib.o bin/game/commonlib.o -o bin/game/client
 	$(CC) $(CFLAGS) bin/startGame.o -o bin/startGame
+	$(CC) $(CFLAGS) bin/test/launchClients.o -o bin/test/launchClients
+	$(CC) $(CFLAGS) bin/test/testGenerator.o -o bin/test/testGenerator
 
-#Compilazione della libreria comune senza linking nella cartella bin/
+#Compilazione della libreria comune senza linking nella cartella bin/game/
 commonlib.o:
-	$(CC) -c $(COMMON)/commonlib.c -o bin/commonlib.o
+	$(CC) -c $(COMMON)/commonlib.c -o bin/game/commonlib.o 2> gcc.log
 	
-#Compilazione della libreria server senza linking nella cartella bin/
+#Compilazione della libreria server senza linking nella cartella bin/game/
 serverlib.o:
-	$(CC) -c $(SERVER)/serverlib.c -o bin/serverlib.o
+	$(CC) -c $(SERVER)/serverlib.c -o bin/game/serverlib.o 2> gcc.log
 
-#Compilazione del file server senza linking nella cartella bin/
+#Compilazione del file server senza linking nella cartella bin/game/
 server.o:
-	$(CC) -c $(SERVER)/server.c -o bin/server.o
+	$(CC) -c $(SERVER)/server.c -o bin/game/server.o 2> gcc.log
 
-#Compilazione della libreria client senza linking nella cartella bin/
+#Compilazione della libreria client senza linking nella cartella bin/game/
 clientlib.o:
-	$(CC) -c $(CLIENT)/clientlib.c -o bin/clientlib.o
+	$(CC) -c $(CLIENT)/clientlib.c -o bin/game/clientlib.o 2> gcc.log
 
-#Compilazione del file client senza linking nella cartella bin/
+#Compilazione del file client senza linking nella cartella bin/game/
 client.o:
-	$(CC) -c $(CLIENT)/client.c -o bin/client.o
+	$(CC) -c $(CLIENT)/client.c -o bin/game/client.o 2> gcc.log
 
 #Compilazione del file startGame senza linking nella cartella bin/
 startGame.o:
-	$(CC) -c $(COMMON)/startGame.c -o bin/startGame.o
+	$(CC) -c $(COMMON)/startGame.c -o bin/startGame.o 2> gcc.log
+
+#Compilazione del file launchClients senza linking nella cartella bin/test/
+launchClients.o:
+	$(CC) -c $(TEST)/launchClients.c -o bin/test/launchClients.o 2> gcc.log
+
+#Compilazione del file testGenerator senza linking nella cartella bin/test/
+testGenerator.o:
+	$(CC) -c $(TEST)/testGenerator.c -o bin/test/testGenerator.o 2> gcc.log
 
 #Regola per la rimozione dei files residui (files oggetto nella cartella bin)
 clean:
+	rm bin/game/*.o
+	rm bin/test/*.o
 	rm bin/*.o
