@@ -29,15 +29,16 @@ int main(int argc,char** argv)
 	char logFilePath[1000];
 	FILE* logFile;
 	int questionNumber=100;
-	int clientsNumber=10;
-	int maxPoints=20;
+	int clientsNumber=atoi(argv[1]);
+	int maxPoints=atoi(argv[2]);
+
 	answers = (char**)malloc(sizeof(char*)*questionNumber);
 	questions = (char**)malloc(sizeof(char*)*questionNumber);
 	
 	playerFile=(FILE**)malloc(sizeof(FILE*)*clientsNumber);
-	strcpy(questionsFilePath,"../assets/server/questions.test");
-	strcpy(logFilePath,"../assets/server/server.log");
-	strcpy(clientFilePath,"../assets/client/");
+	strcpy(questionsFilePath,"assets/server/questions.test");
+	strcpy(logFilePath,"assets/server/server.log");
+	strcpy(clientFilePath,"assets/client/");
 	questionsFile = fopen(questionsFilePath,"w");
 	if(questionsFile==NULL)
 	{

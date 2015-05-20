@@ -11,13 +11,13 @@
 int main(int argc,char** argv)
 {
 	int i;
-	for(i=1;i<=10;i++)
+	for(i=1;i<=atoi(argv[1]);i++)
 	{
 		if(fork()==0)
 		{
 			char index[20];	
 			sprintf(index,"%d",i);
-			execl("./client","./client",index,(char*)0);
+			execl("./bin/game/client","./bin/game/client",index,(char*)0);
 		}
 	}
 }

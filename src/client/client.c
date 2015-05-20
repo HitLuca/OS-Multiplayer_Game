@@ -188,12 +188,14 @@ int main(int argc, char** argv) //client --test --color
 							
 							if(strchr(message->parameters[0],'K')!=NULL) //messaggio di kick
 							{
+								printScreen(colorRun, DEFAULT, "\n");
 								printScreen(colorRun, AUTH, "Espulso dal server\n");
 								deallocResources();
 								return 0;
 							}
 							else if(strchr(message->parameters[0],'D')!=NULL) //server chiuso
 							{
+								printScreen(colorRun, DEFAULT, "\n");
 								printScreen(colorRun, ERROR, "Il server e' stato chiuso\n");
 								deallocResources();
 								return 0;
