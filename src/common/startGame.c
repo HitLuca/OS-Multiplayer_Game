@@ -110,7 +110,6 @@ void server_side(int argc, char** argv) {
                 else if (iOptarg<=WIN_LIMIT)
                 {
                     sprintf(win, "%d", iOptarg);
-                    printf("%s", win);
                 }
                 else
                 {
@@ -143,7 +142,7 @@ void server_side(int argc, char** argv) {
     }
     else
     {
-        execl("./server", "./server", max, win, testString, colorString, (char *) NULL);
+        execl("./game/server", "./game/server", max, win, testString, colorString, (char *) NULL);
     }
 }
 
@@ -203,7 +202,7 @@ void client_side(int argc, char** argv) {
     }
     else
     {
-        execl("./client", "./client", testString, colorString, (char *) NULL);
+        execl("./game/client", "./game/client", testString, colorString, (char *) NULL);
     }
 }
 
