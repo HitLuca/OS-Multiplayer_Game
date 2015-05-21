@@ -5,7 +5,7 @@
 CC=gcc
 
 #<----------------------------------------
-TEST_CLIENT=5
+TEST_CLIENT=7
 TEST_WIN_POINTS=15
 
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
@@ -87,7 +87,8 @@ test:
 	@make launchClients.o
 	$(CC) $(CFLAGS) $(TEST_BIN)/launchClients.o -o $(TEST_BIN)/launchClients
 	@make assets_clean
-	$(BIN)/startGame --server --test > logs/serverOutput.log
+	$(BIN)/startGame --server --win $(TEST_WIN_POINTS) --max $(TEST_CLIENT) --test > logs/serverOutput.log
+	#$(TEST_BIN)/launchClients $(TEST_CLIENT) $(TEST_WIN_POINTS)
 
 game_wrapper: 
 	@clear

@@ -15,7 +15,7 @@
 void handler ()
 {  
 	deallocResources();
-	printScreen(colorRun, DEFAULT, "\n");
+	print(DEFAULT, "\n");
 	if(connected==1)
 	{
 		char disconnectMessage[MAX_MESSAGE_SIZE];
@@ -38,10 +38,10 @@ void* userInput(void* arg)
 		if(newQuestion==1)
 		{
 			sprintf(stringBuffer, "La domanda e' %s\n", currentQuestion.text);
-			printScreen(colorRun, GAME, stringBuffer);
+			print( GAME, stringBuffer);
 			newQuestion=0;
 		}
-		printScreen(colorRun, DEFAULT, "La tua risposta>");
+		print( DEFAULT, "La tua risposta>");
 		waitingForUserInput=1;
 		getline(&input,&size,stdin);
 		strchr(input,'\n')[0]='\0';
@@ -69,7 +69,7 @@ void* testInput(void* arg)
 		}
 		fscanf(testFile,"%s",answer);
 		waitingForUserInput=1;
-		sleep(atoi(delay)/1000.0);
+		usleep(atoi(delay)*1000L);
 		sendResponse(serverAnswerFIFO, answer);
 		waitingForUserInput=0;
 		pthread_mutex_lock(&mutex);
@@ -80,15 +80,15 @@ void* testInput(void* arg)
 int validateUsername(char* username)
 {
 	sprintf(stringBuffer, "Hai scelto %s\n",username);
-	printScreen(colorRun, INFO, stringBuffer);
+	print( INFO, stringBuffer);
 	if(strlen(username)<MIN_USERNAME_LENGHT)
 	{
-		printScreen(colorRun, ERROR, "Username troppo corto\n");
+		print( ERROR, "Username troppo corto\n");
 		return -1;
 	}
 	else if(strlen(username)>MAX_USERNAME_LENGHT)
 	{
-		printScreen(colorRun, ERROR, "Username troppo lungo\n");
+		print( ERROR, "Username troppo lungo\n");
 		return -1;
 	}
 	else
@@ -99,7 +99,7 @@ int validateUsername(char* username)
 			if(!isalnum(username[i]))
 			{
 				sprintf(stringBuffer, "Carattere %c non valido\n",username[i]);
-				printScreen(colorRun, DEFAULT, stringBuffer);
+				print( DEFAULT, stringBuffer);
 				return -1;
 			}
 		}
@@ -175,4 +175,13 @@ void setNewQuestion(Message *message)
 void deallocResources(){
 	close(inMessageFIFO);
 	unlink(messageFIFOName);
+}
+
+void print(tags tag,char* message)
+{
+	if(testRun==0)
+	{
+		printf("\r                                \r");
+		printScreen(colorRun,tag,message);
+	}
 }

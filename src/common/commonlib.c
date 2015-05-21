@@ -81,7 +81,6 @@ Message** parseMessages(char *rawMessages,int size){
 
 void printScreen(int color, tags tag, char* message)
 {
-	printf("\r                                                                  \r"); //<----------------------------
 	if (color==1)
 	{
 		switch(tag)

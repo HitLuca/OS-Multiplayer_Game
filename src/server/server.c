@@ -82,6 +82,10 @@ int main(int argc,char **argv) //server --max --win --test --color
 			char buffer[500];
 	        char* c;
 	        char* past;
+	        
+	        //lancio il tread di attesa
+	        //pthread_t waiting;
+			//pthread_create (&waiting, NULL, &waitingThread, NULL);
 
 	        strcpy(buffer, argv[0]);
 	        c=buffer;

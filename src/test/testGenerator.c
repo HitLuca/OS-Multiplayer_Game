@@ -10,9 +10,9 @@
 
 #define MAX_QUESTION_SIZE 2000
 #define MAX_QUESTION_NUM 100
-#define MAX_WAIT 300
-#define CORRECT_PERCENTAGE 60
-#define MIN_OFFSET 500
+#define MAX_WAIT 500
+#define CORRECT_PERCENTAGE 75
+#define MIN_OFFSET 700
 
 void GenerateNewQuestion(int index);
 
@@ -56,9 +56,11 @@ int main(int argc,char** argv)
 	
 	int* points=(int*)malloc(sizeof(int)*clientsNumber);
 	int* lastInteraction=(int*)malloc(sizeof(int)*clientsNumber);
+	int* login=(int*)malloc(sizeof(int)*clientsNumber);
 	for(i=0;i<clientsNumber;i++)
 	{
 		points[i]=-1;
+		login[i]=0;
 		lastInteraction[i]=0;
 		char index[20];
 		sprintf(index,"%d",i+1);
@@ -89,8 +91,9 @@ int main(int argc,char** argv)
 		fprintf(playerFile[chosen],"%d\n",(int)(timePassed-lastInteraction[chosen]));
 		lastInteraction[chosen]=timePassed;
 		
-		if(points[chosen]==-1)
+		if(login[chosen]==0)
 		{
+			login[chosen]=1;
 			fprintf(playerFile[chosen],"Player%d\n",chosen+1);
 			points[chosen]=startPoints;
 			fprintf(logFile,"[AUTH] Player%d ha effettuato una richiesta di connessione\n",chosen+1);
@@ -106,7 +109,7 @@ int main(int argc,char** argv)
 				fprintf(playerFile[chosen],"%s\n",answers[currentQuestion]);
 				
 				fprintf(logFile,"[GAME] Player%d ha risposto %s alla domanda %s\n",chosen+1,answers[currentQuestion],questions[currentQuestion]);
-				if(currentQuestion<questionNumber)
+				if(currentQuestion<questionNumber && points[chosen]<maxPoints-1)
 				{
 					fprintf(logFile,"[GAME] La nuova domanda e' %s, ha risposta %s\n",questions[currentQuestion+1],answers[currentQuestion+1]);
 				}
@@ -116,6 +119,7 @@ int main(int argc,char** argv)
 			else
 			{
 				fprintf(playerFile[chosen],"error\n");
+				fprintf(logFile,"[GAME] Player%d ha risposto error alla domanda %s\n",chosen+1,questions[currentQuestion]);
 				points[chosen]--;
 			}
 			if(currentQuestion>questionNumber)
@@ -123,18 +127,21 @@ int main(int argc,char** argv)
 				fprintf(logFile,"[INFO] Sessione di test terminata\n");
 				break;
 			}
-			else if(points[chosen]>maxPoints)
+			else if(points[chosen]>=maxPoints)
 			{
 				fprintf(logFile,"[GAME] Il giocatore Player%d ha vinto\n",chosen+1);
 				fprintf(logFile,"[GAME] La partita e' terminata");
+				fprintf("\n");
 				break;
 			}
 		}
 		fflush(logFile);
+		fflush(playerFile[chosen]);
 	}
 	fclose(logFile);
 	for(i=0;i<clientsNumber;i++)
 	{
+		fprintf(playerFile[i],"end\n");
 		fclose(playerFile[i]);
 	}
 	printf("File di test generati,\nil test richiedera' %lld secondi\n\n",(timePassed)/1000);

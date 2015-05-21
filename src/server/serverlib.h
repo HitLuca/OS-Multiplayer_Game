@@ -11,6 +11,7 @@
 #define MAX_PARAMETERS_NUMBER 6
 #define QUESTION_ID 8
 #define MAX_QUESTION_NUM 100
+#define BASH "server>"
 
 //Struct contenente i dati dei client necessari a contattarli e operare su di essi
 typedef struct {
@@ -76,5 +77,7 @@ void notifyAll(char* message);
 void notifyPlayers(char* message,char ** players,int playerNumber);
 void kickAll();
 void kickPlayers(char ** players,int playerNumber);
+void print(tags tag, char* message);
+void* waitingThread(void* arg);
 
 #endif
