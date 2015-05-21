@@ -142,7 +142,27 @@ void server_side(int argc, char** argv) {
     }
     else
     {
-        execl("./game/server", "./game/server", max, win, testString, colorString, (char *) NULL);
+        char buffer[500];
+        char* c;
+        char* past;
+
+        strcpy(buffer, argv[0]);
+        c=buffer;
+        printf("%s\n", buffer);
+        while(1)
+        {
+            past = c;
+            c=strchr(c, '/');
+            if (c==NULL)
+            {
+                break;
+            }
+            c++;
+        }
+        strcpy(past, "game/server");
+        printf("%s\n", buffer);
+
+        execl(buffer, buffer, max, win, testString, colorString, (char *) NULL);
     }
 }
 
@@ -202,7 +222,27 @@ void client_side(int argc, char** argv) {
     }
     else
     {
-        execl("./game/client", "./game/client", testString, colorString, (char *) NULL);
+        char buffer[500];
+        char* c;
+        char* past;
+
+        strcpy(buffer, argv[0]);
+        c=buffer;
+        printf("%s\n", buffer);
+        while(1)
+        {
+            past = c;
+            c=strchr(c, '/');
+            if (c==NULL)
+            {
+                break;
+            }
+            c++;
+        }
+        strcpy(past, "game/client");
+        printf("%s\n", buffer);
+
+        execl(buffer, buffer, testString, colorString, (char *) NULL);
     }
 }
 

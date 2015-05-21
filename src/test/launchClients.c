@@ -17,7 +17,7 @@ int main(int argc,char** argv)
 		{
 			char index[20];	
 			sprintf(index,"%d",i);
-			execl("./bin/game/client","./bin/game/client",index,(char*)0);
+			execl("../game/client","../game/client",index,(char*)0);
 		}
 	}
 }

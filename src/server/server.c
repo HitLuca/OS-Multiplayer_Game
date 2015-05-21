@@ -80,9 +80,25 @@ int main(int argc,char **argv) //server --max --win --test --color
 
 		if(testRun==1)
 		{
-			char filePath[1000];
-			strcpy(filePath,"../assets/server/questions.test");
-			testFile = fopen(filePath,"r");
+			char buffer[500];
+	        char* c;
+	        char* past;
+
+	        strcpy(buffer, argv[0]);
+	        c=buffer;
+	        while(1)
+	        {
+	            past = c;
+	            c=strchr(c, '/');
+	            if (c==NULL)
+	            {
+	                break;
+	            }
+	            c++;
+	        }
+	        strcpy(past, "../../assets/server/questions.test");
+
+			testFile = fopen(buffer,"r");
 			if(testFile==NULL)
 			{
 				printScreen(colorRun, ERROR, "Errore apertura file di test\n\n");
@@ -90,9 +106,12 @@ int main(int argc,char **argv) //server --max --win --test --color
 			}
 		}
 
-		printScreen(colorRun, DEFAULT, "\e[1;1H\e[2J");
-		printScreen(colorRun, DEFAULT, "Benvenuto nel terminale utente!\n");
-		printScreen(colorRun, DEFAULT, "Digita help per una lista dei comandi\n");
+		if(testRun==0)
+		{
+			printScreen(colorRun, DEFAULT, "\e[1;1H\e[2J");
+			printScreen(colorRun, DEFAULT, "Benvenuto nel terminale utente!\n");
+			printScreen(colorRun, DEFAULT, "Digita help per una lista dei comandi\n");
+		}	
 
 		//Creo il thread con la parte di autorizzazione
 		pthread_t authorization;
