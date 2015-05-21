@@ -36,7 +36,6 @@ int main(int argc,char **argv) //server --max --win --test --color
 		connectedClientsNumber=0;
 		currentQuestion=0;
 		
-		//TODO settare con il valore passato
 		
 		//Se la variabile max è presente la setto
 		if (strcmp(argv[1],"0")!=0)

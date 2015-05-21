@@ -180,7 +180,6 @@ int main(int argc, char** argv) //client --test --color
 						Message** messageList = parseMessages(rawMessages,size); 
 						int i=0;
 						
-						
 						while(messageList[i]!=NULL)
 						{
 							Message* message = messageList[i];
@@ -188,14 +187,12 @@ int main(int argc, char** argv) //client --test --color
 							
 							if(strchr(message->parameters[0],'K')!=NULL) //messaggio di kick
 							{
-								printScreen(colorRun, DEFAULT, "\n");
 								printScreen(colorRun, AUTH, "Espulso dal server\n");
 								deallocResources();
 								return 0;
 							}
 							else if(strchr(message->parameters[0],'D')!=NULL) //server chiuso
 							{
-								printScreen(colorRun, DEFAULT, "\n");
 								printScreen(colorRun, ERROR, "Il server e' stato chiuso\n");
 								deallocResources();
 								return 0;
@@ -224,7 +221,6 @@ int main(int argc, char** argv) //client --test --color
 								setNewQuestion(message);
 								if(waitingForUserInput==1 && testRun==0) //se il thread è bloccato in attesa di una risposta dall utente
 								{
-									printScreen(colorRun, DEFAULT, "\n");
 									waitingForUserInput=0;
 									if (pthread_cancel(bash)!=0)//lo chiudo
 									{
@@ -240,8 +236,7 @@ int main(int argc, char** argv) //client --test --color
 							}
 							else if(strchr(message->parameters[0],'N')!=NULL) //messaggio di notifica
 							{
-								sprintf(stringBuffer, "%s",message->parameters[1]);
-								printScreen(colorRun, DEFAULT, "\n");
+								sprintf(stringBuffer, "%s\n",message->parameters[1]);
 								printScreen(colorRun, INFO, stringBuffer);
 								if(waitingForUserInput==1 && endGame==0 && testRun==0) //se il thread è bloccato in attesa di una risposta dall utente
 								{

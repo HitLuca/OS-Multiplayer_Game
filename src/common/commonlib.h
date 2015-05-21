@@ -9,7 +9,7 @@
 #define MAX_FIFO_NAME_SIZE 100
 #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 #define MAX_QID_SIZE 4
-#define MAX_QUESTION_SIZE 30
+#define MAX_QUESTION_SIZE 2900
 #define POINT_SIZE 4
 
 #define COLOR_RED     "\x1b[31m"

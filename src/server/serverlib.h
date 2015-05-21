@@ -63,14 +63,18 @@ void BroadcastQuestion();
 void disconnectClient(int id);
 void handler ();
 void broadcastServerClosed();
-void kick(char* name);
+void kick(int id);
 Command* parseCommand(char* command);
 void listCommand();
 void sendCustomizedQuestion(char* question,char* answer);
 void broadcastConnection(int id,char* name);
-void broadcastDisonnection(int id,char* name);
+void broadcastDisonnection(int id);
 void endGame(ClientData* winner);
 void broadcastEndGame();
 void broadcastRank(ClientData* best);
+void notifyAll(char* message);
+void notifyPlayers(char* message,char ** players,int playerNumber);
+void kickAll();
+void kickPlayers(char ** players,int playerNumber);
 
 #endif
