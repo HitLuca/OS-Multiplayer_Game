@@ -90,10 +90,26 @@ int main(int argc, char** argv) //client --test --color
 		}
 		else //altrimenti lo leggo da file
 		{
-			char filePath[1000];
-			strcpy(filePath,"../assets/client/");
+			char filePath[500];
+	        char* c;
+	        char* past;
+
+	        strcpy(filePath, argv[0]);
+	        c=filePath;
+	        while(1)
+	        {
+	            past = c;
+	            c=strchr(c, '/');
+	            if (c==NULL)
+	            {
+	                break;
+	            }
+	            c++;
+	        }
+	        strcpy(filePath, "../assets/client/");
 			strcat(filePath,testFileName);
 			strcat(filePath,".test");
+			printf("%s\n", filePath);
 			testFile = fopen(filePath,"r");
 			if(testFile==NULL)
 			{
@@ -102,7 +118,6 @@ int main(int argc, char** argv) //client --test --color
 			}
 			int size = 20;
 			char delay[20];
-
 			fscanf(testFile,"%s",delay);
 			fscanf(testFile,"%s",username);
 			sleep(atoi(delay)/1000.0);

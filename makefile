@@ -8,11 +8,16 @@ CC=gcc
 TEST_CLIENT=5
 TEST_WIN_POINTS=15
 
+ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
 #Path dei vari files del progetto
-COMMON=src/common
-SERVER=src/server
-CLIENT=src/client
-TEST=src/test
+COMMON_SRC=src/common
+SERVER_SRC=src/server
+CLIENT_SRC=src/client
+TEST_SRC=src/test
+GAME_BIN=bin/game
+TEST_BIN=bin/test
+BIN=bin
 
 #Files oggetto da usare per la compilazione del programma
 GAME_OBJECTS=serverlib.o clientlib.o commonlib.o client.o server.o startGame.o
@@ -80,10 +85,9 @@ test:
 	@make bin
 	@make assets
 	@make launchClients.o
-	$(CC) $(CFLAGS) bin/test/launchClients.o -o bin/test/launchClients
+	$(CC) $(CFLAGS) $(TEST_BIN)/launchClients.o -o $(TEST_BIN)/launchClients
 	@make assets_clean
-	cd bin && ./startGame --server --test > ../logs/serverOutput.log
-	cd bin/test && ./launchClients $(TEST_CLIENT) > ../../logs/clientOutput.log
+	$(BIN)/startGame --server --test > logs/serverOutput.log
 
 game_wrapper: 
 	@clear
@@ -102,13 +106,13 @@ assets_wrapper:
 #Creazione dei file linkati client server e startGame, necessari i file oggetto (*.o)
 game_objects:  game_dirs $(GAME_OBJECTS)
 	@echo $(NOTIFY_STRING) Compilazione files oggetto
-	$(CC) $(CFLAGS) bin/game/server.o bin/game/serverlib.o bin/game/commonlib.o -o bin/game/server
-	$(CC) $(CFLAGS) bin/game/client.o bin/game/clientlib.o bin/game/commonlib.o -o bin/game/client
-	$(CC) $(CFLAGS) bin/startGame.o -o bin/startGame
+	$(CC) $(CFLAGS) $(GAME_BIN)/server.o $(GAME_BIN)/serverlib.o $(GAME_BIN)/commonlib.o -o $(GAME_BIN)/server
+	$(CC) $(CFLAGS) $(GAME_BIN)/client.o $(GAME_BIN)/clientlib.o $(GAME_BIN)/commonlib.o -o $(GAME_BIN)/client
+	$(CC) $(CFLAGS) $(BIN)/startGame.o -o $(BIN)/startGame
 
 assets_objects: testGenerator.o
 	@echo $(NOTIFY_STRING) Compilazione files oggetto
-	$(CC) $(CFLAGS) bin/test/testGenerator.o -o bin/test/testGenerator
+	$(CC) $(CFLAGS) $(TEST_BIN)/testGenerator.o -o $(TEST_BIN)/testGenerator
 
 #Creazione della cartella bin con controllo della sua esistenza per non generare errori in caso sia già presente
 game_dirs:
@@ -177,42 +181,42 @@ objects: game_dirs $(GAME_OBJECTS)
 
 #Compilazione della libreria comune senza linking nella cartella bin/game/
 commonlib.o:
-	$(CC) -c $(COMMON)/commonlib.c -o bin/game/commonlib.o 2> logs/gcc.log
+	$(CC) -c $(COMMON_SRC)/commonlib.c -o $(GAME_BIN)/commonlib.o 2> logs/gcc.log
 	
 #Compilazione della libreria server senza linking nella cartella bin/game/
 serverlib.o:
-	$(CC) -c $(SERVER)/serverlib.c -o bin/game/serverlib.o 2> logs/gcc.log
+	$(CC) -c $(SERVER_SRC)/serverlib.c -o $(GAME_BIN)/serverlib.o 2> logs/gcc.log
 
 #Compilazione del file server senza linking nella cartella bin/game/
 server.o:
-	$(CC) -c $(SERVER)/server.c -o bin/game/server.o 2> logs/gcc.log
+	$(CC) -c $(SERVER_SRC)/server.c -o $(GAME_BIN)/server.o 2> logs/gcc.log
 
 #Compilazione della libreria client senza linking nella cartella bin/game/
 clientlib.o:
-	$(CC) -c $(CLIENT)/clientlib.c -o bin/game/clientlib.o 2> logs/gcc.log
+	$(CC) -c $(CLIENT_SRC)/clientlib.c -o $(GAME_BIN)/clientlib.o 2> logs/gcc.log
 
 #Compilazione del file client senza linking nella cartella bin/game/
 client.o:
-	$(CC) -c $(CLIENT)/client.c -o bin/game/client.o 2> logs/gcc.log
+	$(CC) -c $(CLIENT_SRC)/client.c -o $(GAME_BIN)/client.o 2> logs/gcc.log
 
 #Compilazione del file startGame senza linking nella cartella bin/
 startGame.o:
-	$(CC) -c $(COMMON)/startGame.c -o bin/startGame.o 2> logs/gcc.log
+	$(CC) -c $(COMMON_SRC)/startGame.c -o $(BIN)/startGame.o 2> logs/gcc.log
 
 #Compilazione del file launchClients senza linking nella cartella bin/test/
 launchClients.o:
-	$(CC) -c $(TEST)/launchClients.c -o bin/test/launchClients.o 2> logs/gcc.log
+	$(CC) -c $(TEST_SRC)/launchClients.c -o $(TEST_BIN)/launchClients.o 2> logs/gcc.log
 
 #Compilazione del file testGenerator senza linking nella cartella bin/test/
 testGenerator.o:
-	$(CC) -c $(TEST)/testGenerator.c -o bin/test/testGenerator.o 2> logs/gcc.log
+	$(CC) -c $(TEST_SRC)/testGenerator.c -o $(TEST_BIN)/testGenerator.o 2> logs/gcc.log
 
 game_clean:
-	rm bin/game/*.o
-	rm bin/*.o
+	rm $(GAME_BIN)/*.o
+	rm $(BIN)/*.o
 
 assets_clean:
-	rm bin/test/*.o
+	rm $(TEST_BIN)/*.o
 
 clean: 
 	@make game_clean 
