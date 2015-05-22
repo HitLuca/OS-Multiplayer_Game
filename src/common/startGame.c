@@ -148,7 +148,6 @@ void server_side(int argc, char** argv) {
 
         strcpy(buffer, argv[0]);
         c=buffer;
-        printf("%s\n", buffer);
         while(1)
         {
             past = c;
@@ -160,7 +159,6 @@ void server_side(int argc, char** argv) {
             c++;
         }
         strcpy(past, "game/server");
-        printf("%s\n", buffer);
 
         execl(buffer, buffer, max, win, testString, colorString, (char *) NULL);
     }
@@ -228,7 +226,6 @@ void client_side(int argc, char** argv) {
 
         strcpy(buffer, argv[0]);
         c=buffer;
-        printf("%s\n", buffer);
         while(1)
         {
             past = c;
@@ -240,7 +237,6 @@ void client_side(int argc, char** argv) {
             c++;
         }
         strcpy(past, "game/client");
-        printf("%s\n", buffer);
 
         execl(buffer, buffer, testString, colorString, (char *) NULL);
     }
