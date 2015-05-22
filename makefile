@@ -118,9 +118,8 @@ intensive_test: log_dir
 	@make check_logs
 	@echo $(NOTIFY_STRING) Avvio del server per il testing
 	$(BIN)/startGame --server --win $(TEST_WIN_POINTS) --max $(TEST_CLIENT) --test
-
 	@echo
-	@#Controllo delle differenze tra output attuale e previsto
+	@echo $(NOTIFY_STRING) Il testing è terminato
 	@echo $(WARN_STRING) Controllo delle differenze tra output attuale e previsto...
 	@if [ "$(DIFF)" != "" ]; then \
 	echo $(ERROR_STRING) i files $(ERROR_COLOR)NON COINCIDONO$(NO_COLOR); \
@@ -138,7 +137,9 @@ test: log_dir
 	@make check_logs
 	@echo $(NOTIFY_STRING) Avvio del server per il testing
 	$(BIN)/startGame --server --win $(TEST_WIN_POINTS) --max $(TEST_CLIENT) --test
-
+	@echo
+	@echo $(NOTIFY_STRING) Il testing è terminato
+	
 #Fa il revert allo stato iniziale del progetto
 revert:
 	@echo $(NOTIFY_STRING) Inizio revert del progetto
