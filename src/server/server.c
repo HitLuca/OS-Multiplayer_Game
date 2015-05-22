@@ -11,9 +11,6 @@
 
 #include "serverlib.h"
 
-//Array di argomenti da passare al sender (nomeFIFOclient e messaggio)
-//METTERE A POSTO WTF
-
 int main(int argc,char **argv) //server --max --win --test --color
 {
 	struct sigaction sa;
@@ -120,7 +117,7 @@ int main(int argc,char **argv) //server --max --win --test --color
 			}
 		}
 
-		if(testRun==0)
+		if(testRun==0) //Faccio printf così non lo salvo nel logfile
 		{
 			printf("\e[1;1H\e[2J");
 			printf("Benvenuto nel terminale utente!\n");
