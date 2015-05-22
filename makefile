@@ -5,9 +5,10 @@
 CC=gcc
 
 #<----------------------------------------
-TEST_CLIENT=7
+TEST_CLIENT=5
 TEST_WIN_POINTS=15
 
+#Variabile contenente il percorso assoluto al progetto
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 #Path dei vari files del progetto
@@ -79,16 +80,18 @@ assets: log_dir assets_dirs
 	@cat logs/assets_wrapper.log | grep -v '\[' > logs/assets_build.log
 	@rm logs/assets_wrapper.log
 	@make delete_assets
-	./bin/test/testGenerator $(TEST_CLIENT) $(TEST_WIN_POINTS)
+	@echo $(NOTIFY_STRING) Creazione degli assets
+	./$(TEST_BIN)/testGenerator $(TEST_CLIENT) $(TEST_WIN_POINTS)
+	@echo $(NOTIFY_STRING) Assets creati
 
 test:
 	@make bin
 	@make assets
 	@make launchClients.o
-	$(CC) $(CFLAGS) $(TEST_BIN)/launchClients.o -o $(TEST_BIN)/launchClients
+	$(CC) $(CFLAGS) $(TEST_BIN)/launchClients.o -o $(TEST_BIN)/launchClients 2> logs/gcc.log
 	@make assets_clean
+	@echo $(NOTIFY_STRING) Avvio del server per il testing
 	$(BIN)/startGame --server --win $(TEST_WIN_POINTS) --max $(TEST_CLIENT) --test
-	#$(TEST_BIN)/launchClients $(TEST_CLIENT) $(TEST_WIN_POINTS)
 
 game_wrapper: 
 	@clear
@@ -107,40 +110,40 @@ assets_wrapper:
 #Creazione dei file linkati client server e startGame, necessari i file oggetto (*.o)
 game_objects:  game_dirs $(GAME_OBJECTS)
 	@echo $(NOTIFY_STRING) Compilazione files oggetto
-	$(CC) $(CFLAGS) $(GAME_BIN)/server.o $(GAME_BIN)/serverlib.o $(GAME_BIN)/commonlib.o -o $(GAME_BIN)/server
-	$(CC) $(CFLAGS) $(GAME_BIN)/client.o $(GAME_BIN)/clientlib.o $(GAME_BIN)/commonlib.o -o $(GAME_BIN)/client
-	$(CC) $(CFLAGS) $(BIN)/startGame.o -o $(BIN)/startGame
+	$(CC) $(CFLAGS) $(GAME_BIN)/server.o $(GAME_BIN)/serverlib.o $(GAME_BIN)/commonlib.o -o $(GAME_BIN)/server 2> logs/gcc.log
+	$(CC) $(CFLAGS) $(GAME_BIN)/client.o $(GAME_BIN)/clientlib.o $(GAME_BIN)/commonlib.o -o $(GAME_BIN)/client 2> logs/gcc.log
+	$(CC) $(CFLAGS) $(BIN)/startGame.o -o $(BIN)/startGame 2> logs/gcc.log
 
 assets_objects: testGenerator.o
 	@echo $(NOTIFY_STRING) Compilazione files oggetto
-	$(CC) $(CFLAGS) $(TEST_BIN)/testGenerator.o -o $(TEST_BIN)/testGenerator
+	$(CC) $(CFLAGS) $(TEST_BIN)/testGenerator.o -o $(TEST_BIN)/testGenerator 2> logs/gcc.log
 
 #Creazione della cartella bin con controllo della sua esistenza per non generare errori in caso sia già presente
 game_dirs:
-	@echo $(NOTIFY_STRING) Controllo della presenza cartella $(OK_COLOR)bin$(NO_COLOR)
-	@if [ -d "bin" ]; then \
-	echo $(WARN_STRING) La cartella $(OK_COLOR)bin$(NO_COLOR) esiste già; \
+	@echo $(NOTIFY_STRING) Controllo della presenza cartella $(OK_COLOR)$(BIN)$(NO_COLOR)
+	@if [ -d "$(BIN)" ]; then \
+	echo $(WARN_STRING) La cartella $(OK_COLOR)$(BIN)$(NO_COLOR) esiste già; \
 	else \
-	echo $(NOTIFY_STRING) Creazione cartella $(OK_COLOR)bin$(NO_COLOR); \
-	mkdir -p bin; \
+	echo $(NOTIFY_STRING) Creazione cartella $(OK_COLOR)$(BIN)$(NO_COLOR); \
+	mkdir -p $(BIN); \
 	fi
 
-	@echo $(NOTIFY_STRING) Controllo della presenza cartella $(OK_COLOR)bin/game$(NO_COLOR)
-	@if [ -d "bin/game" ]; then \
-	echo $(WARN_STRING) La cartella $(OK_COLOR)bin/game$(NO_COLOR) esiste già; \
+	@echo $(NOTIFY_STRING) Controllo della presenza cartella $(OK_COLOR)$(GAME_BIN)$(NO_COLOR)
+	@if [ -d "$(GAME_BIN)" ]; then \
+	echo $(WARN_STRING) La cartella $(OK_COLOR)$(GAME_BIN)$(NO_COLOR) esiste già; \
 	else \
-	echo $(NOTIFY_STRING) Creazione cartella $(OK_COLOR)bin/game$(NO_COLOR) ; \
-	mkdir -p bin/game ; \
+	echo $(NOTIFY_STRING) Creazione cartella $(OK_COLOR)$(GAME_BIN)$(NO_COLOR) ; \
+	mkdir -p $(GAME_BIN) ; \
 	fi
 	@echo $(NOTIFY_STRING) Creazione files oggetto
 
 assets_dirs:
-	@echo $(NOTIFY_STRING) Controllo della presenza cartella $(OK_COLOR)bin/test$(NO_COLOR)
-	@if [ -d "bin/test" ]; then \
-	echo $(WARN_STRING) La cartella $(OK_COLOR)bin/test$(NO_COLOR) esiste già; \
+	@echo $(NOTIFY_STRING) Controllo della presenza cartella $(OK_COLOR)$(TEST_BIN)$(NO_COLOR)
+	@if [ -d "$(TEST_BIN)" ]; then \
+	echo $(WARN_STRING) La cartella $(OK_COLOR)$(TEST_BIN)$(NO_COLOR) esiste già; \
 	else \
-	echo $(NOTIFY_STRING) Creazione cartella $(OK_COLOR)bin/test$(NO_COLOR); \
-	mkdir -p bin/test; \
+	echo $(NOTIFY_STRING) Creazione cartella $(OK_COLOR)$(TEST_BIN)$(NO_COLOR); \
+	mkdir -p $(TEST_BIN); \
 	fi
 
 	@echo $(NOTIFY_STRING) Controllo della presenza cartella $(OK_COLOR)assets$(NO_COLOR)
