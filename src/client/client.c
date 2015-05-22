@@ -154,7 +154,7 @@ int main(int argc, char** argv) //client --test --color
 		
 		int answerResult = checkServerAuthResponse(answer);
 		
-		if(answerResult<0)
+		if(answerResult<0) //Gestione degli errori di autentificazione
 		{
 			if (answerResult==-2)
 			{

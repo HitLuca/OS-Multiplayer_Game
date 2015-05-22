@@ -79,9 +79,10 @@ Message** parseMessages(char *rawMessages,int size){
 	return messages;
 }
 
+//Permette di scrivere con vari colori e tag in modo da rendere più immediato l'output del terminale
 void printScreen(int color, tags tag, char* message)
 {
-	if (color==1)
+	if (color==1) //Voglio i colori
 	{
 		switch(tag)
 		{
@@ -112,7 +113,7 @@ void printScreen(int color, tags tag, char* message)
 			}
 		}
 	}
-	else
+	else //Bianco e nero
 	{
 		switch(tag)
 		{
@@ -145,6 +146,7 @@ void printScreen(int color, tags tag, char* message)
 	}
 }
 
+//Print su file
 void printFile(FILE* file, tags tag, char* message)
 {
 	switch(tag)

@@ -47,9 +47,13 @@ FAIL_STRING = $(NO_COLOR)[$(ERROR_COLOR)FAIL$(NO_COLOR)]
 default:
 	@clear
 	@clear
-	@echo "                  "$(WARN_COLOR)"################################"$(NO_COLOR)
-	@echo "                  "$(WARN_COLOR)"# Progetto Sistemi Operativi 1 #"$(NO_COLOR)
-	@echo "                  "$(WARN_COLOR)"################################"$(NO_COLOR)
+	@echo $(OK_COLOR)"  ______           "$(ERROR_COLOR)" _______        "$(WARN_COLOR)"                   _                   "$(NO_COLOR)
+	@echo $(OK_COLOR)" / _____)          "$(ERROR_COLOR)"/  ___  \       "$(WARN_COLOR)"                  (_)              _   "$(NO_COLOR)
+	@echo $(OK_COLOR)"( (____  _   _  ___"$(ERROR_COLOR)"| |   | |____   "$(WARN_COLOR)"  ____   ____ ___  _ _____  ____ _| |_ "$(NO_COLOR)
+	@echo $(OK_COLOR)" \____ \| | | |/___"$(ERROR_COLOR)"| |   | |  _ \  "$(WARN_COLOR)" |  _ \ / ___) _ \| | ___ |/ ___|_   _)"$(NO_COLOR)
+	@echo $(OK_COLOR)" _____) ) |_| |___ "$(ERROR_COLOR)"| |___| | |_| | "$(WARN_COLOR)" | |_| | |  | |_| | | ____( (___  | |_ "$(NO_COLOR)
+	@echo $(OK_COLOR)"(______/ \__  (___/"$(ERROR_COLOR)" \_____/|  __/  "$(WARN_COLOR)" |  __/|_|   \___/| |_____)\____) \___)"$(NO_COLOR)
+	@echo $(OK_COLOR)"        (____/     "$(ERROR_COLOR)"        |_|     "$(WARN_COLOR)" |_|            (__/                   "$(NO_COLOR)
 	@echo
 	@echo "                               Studenti"
 	@echo "                        "$(OK_COLOR)"Simonetto "$(NO_COLOR)"| "$(OK_COLOR)"Federici"$(NO_COLOR)
@@ -79,7 +83,8 @@ default:
 	@echo "           con domande e risposte casuali. Richiede però più"
 	@echo "           tempo, a favore della precisione"
 	@echo "   "$(ERROR_COLOR)"revert"$(NO_COLOR)": Elimina tutti i files creati dal makefile e eventuali"
-	@echo "           files di log e asset, ricreando la gerarchia di cartelle iniziale"
+	@echo "           files di log e asset, ricreando la gerarchia di"
+	@echo "           cartelle iniziale"
 
 #compila i files e li rende disponibili nella cartella bin bin
 #Per la creazione del file build.log ho creato un wrapper per non dover far scrivere all'utente make bin |tee a.log 
@@ -103,8 +108,8 @@ intensive_assets: date_write log_dir assets_dirs
 	@rm log/intensive_assets_wrapper.log
 	@make check_logs
 
-#Chiama bin e assets e poi avvia il testing del programma
-test: log_dir
+#Come make test ma chiama intensive_assets al posto di assets
+intensive_test: log_dir
 	@make bin
 	@make assets
 	@make test_wrapper | tee log/test_wrapper.log
@@ -123,7 +128,8 @@ test: log_dir
 	echo $(NOTIFY_STRING) i files $(OK_COLOR)COINCIDONO$(NO_COLOR); \
 	fi
 
-intensive_test: log_dir
+#Chiama bin e assets e poi avvia il testing del programma
+test: log_dir
 	@make bin
 	@make intensive_assets
 	@make test_wrapper | tee log/test_wrapper.log
@@ -133,6 +139,7 @@ intensive_test: log_dir
 	@echo $(NOTIFY_STRING) Avvio del server per il testing
 	$(BIN)/startGame --server --win $(TEST_WIN_POINTS) --max $(TEST_CLIENT) --test
 
+#Fa il revert allo stato iniziale del progetto
 revert:
 	@echo $(NOTIFY_STRING) Inizio revert del progetto
 	rm -rf bin
@@ -140,9 +147,11 @@ revert:
 	rm -rf log
 	@echo $(NOTIFY_STRING) Fine revert
 
+#Scrive la data
 date_write:
 	date
 
+#Wrapper per make bin
 game_wrapper: 
 	@clear
 	@make game_objects
@@ -150,6 +159,7 @@ game_wrapper:
 	@make game_clean
 	@echo $(NOTIFY_STRING) Fine
 
+#Wrapper per gli assets
 assets_wrapper: 
 	@make assets_objects
 	@echo $(NOTIFY_STRING) Pulizia files residui
@@ -160,6 +170,7 @@ assets_wrapper:
 	./$(TEST_BIN)/testGenerator $(TEST_CLIENT) $(TEST_WIN_POINTS)
 	@echo $(NOTIFY_STRING) Assets creati
 
+#Wrapper per intensive_test
 intensive_assets_wrapper:
 	@make assets_objects
 	@echo $(NOTIFY_STRING) Pulizia files residui
@@ -170,6 +181,7 @@ intensive_assets_wrapper:
 	./$(TEST_BIN)/testGenerator $(TEST_CLIENT) 0
 	@echo $(NOTIFY_STRING) Assets creati
 
+#Wrapper per test
 test_wrapper:
 	@make launchClients.o
 	$(CC) $(CFLAGS) $(TEST_BIN)/launchClients.o -o $(TEST_BIN)/launchClients 2> log/gcc.log
@@ -183,6 +195,7 @@ game_objects:  game_dirs $(GAME_OBJECTS)
 	$(CC) $(CFLAGS) $(GAME_BIN)/client.o $(GAME_BIN)/clientlib.o $(GAME_BIN)/commonlib.o -o $(GAME_BIN)/client 2> log/gcc.log
 	$(CC) $(CFLAGS) $(BIN)/startGame.o -o $(BIN)/startGame 2> log/gcc.log
 
+#Creazione del file linkato testGenerator, necessari i file oggetto (*.o)
 assets_objects: testGenerator.o
 	@echo $(NOTIFY_STRING) Compilazione files oggetto
 	$(CC) $(CFLAGS) $(TEST_BIN)/testGenerator.o -o $(TEST_BIN)/testGenerator 2> log/gcc.log
@@ -206,6 +219,7 @@ game_dirs:
 	fi
 	@echo $(NOTIFY_STRING) Creazione files oggetto
 
+#Creazione delle cartelle assets, assets/client e assets/server
 assets_dirs:
 	@echo $(NOTIFY_STRING) Controllo della presenza cartella $(OK_COLOR)$(TEST_BIN)$(NO_COLOR)
 	@if [ -d "$(TEST_BIN)" ]; then \
@@ -240,6 +254,7 @@ assets_dirs:
 	fi
 	@echo $(NOTIFY_STRING) Creazione files oggetto
 
+#Creazione delle cartelle log, log/server e log/client
 log_dir:
 	@echo $(NOTIFY_STRING) Controllo della presenza cartella $(OK_COLOR)log$(NO_COLOR)
 	@if [ -d "log" ]; then \
@@ -262,9 +277,6 @@ log_dir:
 	echo $(NOTIFY_STRING) Creazione cartella $(OK_COLOR)log/client$(NO_COLOR); \
 	mkdir -p log/client; \
 	fi
-
-objects: game_dirs $(GAME_OBJECTS)
-	@echo $(NOTIFY_STRING) Fine
 
 #Compilazione della libreria comune senza linking nella cartella bin/game/
 commonlib.o:
@@ -298,25 +310,34 @@ launchClients.o:
 testGenerator.o:
 	$(CC) -c $(TEST_SRC)/testGenerator.c -o $(TEST_BIN)/testGenerator.o 2> log/gcc.log
 
+#Cancella i files oggetto nella cartella bin e bin/game
 game_clean:
 	rm $(GAME_BIN)/*.o
 	rm $(BIN)/*.o
 
+#Cancella i files oggetto nella cartella bin/test
 assets_clean:
 	rm $(TEST_BIN)/*.o
 
+#Chiama i clean
 clean: 
 	@make game_clean 
 	@make assets_clean
 
+#Cancella gli assets client e server
 delete_assets:
 	rm -rf assets/client/*
 	rm -rf assets/server/*
 
+#Controlla che il file log/gcc.log non sia vuoto, sennò lo cancella
 check_logs:
 	@echo $(NOTIFY_STRING) Rimozione files di log non utilizzati
 	@if [ -s log/gcc.log ] ; then \
 	@echo; \
 	else \
-		rm -rf log/gcc.log; \
+	rm -rf log/gcc.log; \
 	fi
+
+#Non penso serva più
+#objects: game_dirs $(GAME_OBJECTS)
+#@echo $(NOTIFY_STRING) Fine

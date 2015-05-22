@@ -19,7 +19,7 @@ void server_side(int argc, char** argv);
 void client_side();
 void print_usage();
 
-int main (int argc, char **argv)
+int main (int argc, char **argv) //startGame --server/client --test --max --win --color
 {
     if (argc==1)
     {
@@ -140,7 +140,7 @@ void server_side(int argc, char** argv) {
     {
         printf("Errore, impossibile avviare il programma in modalità test e color in contemporanea\n");
     }
-    else
+    else //Trovo i giusti filepath
     {
         char buffer[500];
         char* c;
@@ -218,7 +218,7 @@ void client_side(int argc, char** argv) {
     {
         printf("Errore, impossibile avviare il programma in modalità test e color in contemporanea\n");
     }
-    else
+    else //Trovo i giusti filepath
     {
         char buffer[500];
         char* c;

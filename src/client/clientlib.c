@@ -53,6 +53,7 @@ void* userInput(void* arg)
 	}
 }
 
+//Funzione di lettura dell'input associato ai client in modo da riconoscere risposte, ritardi ecc.
 void* testInput(void* arg)  
 {
 	//Il client invia le risposte ad serverAnswerFIFO

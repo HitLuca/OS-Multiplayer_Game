@@ -8,7 +8,8 @@
 #include <unistd.h>
 #include <pthread.h>
 
-int main(int argc,char** argv)
+//Semplice programma per avviare i client
+int main(int argc,char** argv) //launchClients --max --win
 {
 	char filePath[500];
     char* c;
