@@ -140,8 +140,18 @@ int main(int argc, char** argv) //client --test --color
 			
 			if(answerResult<0)
 			{
-				sprintf(stringBuffer, "Errore %d\n",answerResult); //TODO gestire i codici di errore
-				print( ERROR, stringBuffer);
+				if(answerResult==-3)
+				{
+					print( ERROR, "Il server è pieno\n");
+				}
+				else if (answerResult==-4)
+				{
+					print( ERROR, "Il nome è già stato usato da un altro giocatore\n");
+				}
+				else if(answerResult==-5)
+				{
+					print( ERROR, "\"all\" non può essere scelto come username\n");
+				}
 				deallocResources();
 				return answerResult;
 			}
