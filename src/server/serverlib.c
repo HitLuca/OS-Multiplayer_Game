@@ -14,12 +14,7 @@
 void handler ()
 {  
 	broadcastServerClosed();
-	close(serverAnswerFIFO);
-	close(serverAuthFIFO);
-	unlink(SERVER_ANSWER_FIFO);
-	unlink(SERVER_AUTHORIZATION_FIFO);
-	print(DEFAULT, "\n");
-	exit(0);
+	deallocResources();
 }
 
 //Thread che gestisce le richieste di autorizzazione dei client
@@ -737,11 +732,7 @@ void endGame(ClientData* winner)
 	
 	
 	print(GAME, "La partita e' terminata\n\n");
-	close(serverAnswerFIFO);
-	close(serverAuthFIFO);
-	unlink(SERVER_ANSWER_FIFO);
-	unlink(SERVER_AUTHORIZATION_FIFO);
-	exit(0);
+	deallocResources();
 }
 
 //Invio della classifica ai client a fine gioco
@@ -880,10 +871,26 @@ void print(tags tag, char* message)
 		printScreen(colorRun,tag,message);
 		printf(BASH);
 	}
-	else
+
+	printFile(logFile,tag,message);
+	fflush(logFile);
+}
+
+void deallocResources()
+{
+	close(serverAnswerFIFO);
+	close(serverAuthFIFO);
+	unlink(SERVER_ANSWER_FIFO);
+	unlink(SERVER_AUTHORIZATION_FIFO);
+	if(logFile!=NULL)
 	{
-		printScreen(0,tag,message);
+		fclose(logFile);
 	}
+	if(testRun!=0)
+	{
+		fclose(testFile);
+	}	
+	exit(0);
 }
 
 void* waitingThread(void* arg)

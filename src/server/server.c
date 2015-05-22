@@ -27,7 +27,7 @@ int main(int argc,char **argv) //server --max --win --test --color
 	//Check se il server è gia avviato
 	if (mkfifo(SERVER_AUTHORIZATION_FIFO,FILE_MODE)!=0)
 	{
-		printScreen(colorRun, ERROR, "Server gia presente\n");
+		print(ERROR, "Server gia presente\n");
 		return 0;
 	}
 	else
@@ -76,44 +76,55 @@ int main(int argc,char **argv) //server --max --win --test --color
 		{
 			colorRun = 0;
 		}
-
+		
+		//salvo il percorso attuale
+		char currentPath[500];
+		char* c;
+	    char* past;
+		strcpy(currentPath, argv[0]);
+		c=currentPath;
+		while(1)
+		{
+			past = c;
+			c=strchr(c, '/');
+			if (c==NULL)
+			{
+				break;
+			}
+			c++;
+		}
+		strcpy(past,"\0");
+		
+		//apro e creo il file di log;
+		char logFilePath[500];
+		strcpy(logFilePath,currentPath);
+		strcat(logFilePath,"../../logs/server.log");
+		logFile=fopen(logFilePath,"w");
+		if(logFile==NULL)
+		{
+			print(ERROR, "Errore creazione file di Log\n\n");
+			return 0;
+		}
+		
 		if(testRun==1)
 		{
-			char buffer[500];
-	        char* c;
-	        char* past;
-	        
-	        //lancio il tread di attesa
-	        //pthread_t waiting;
-			//pthread_create (&waiting, NULL, &waitingThread, NULL);
+			char testFilePath[500];
+			strcpy(testFilePath,currentPath);
+			strcat(testFilePath,"../../assets/server/questions.test");
 
-	        strcpy(buffer, argv[0]);
-	        c=buffer;
-	        while(1)
-	        {
-	            past = c;
-	            c=strchr(c, '/');
-	            if (c==NULL)
-	            {
-	                break;
-	            }
-	            c++;
-	        }
-	        strcpy(past, "../../assets/server/questions.test");
-
-			testFile = fopen(buffer,"r");
+			testFile = fopen(testFilePath,"r");
 			if(testFile==NULL)
 			{
-				printScreen(colorRun, ERROR, "Errore apertura file di test\n\n");
+				print(ERROR, "Errore apertura file di test\n\n");
 				return 0;
 			}
 		}
 
 		if(testRun==0)
 		{
-			printScreen(colorRun, DEFAULT, "\e[1;1H\e[2J");
-			printScreen(colorRun, DEFAULT, "Benvenuto nel terminale utente!\n");
-			printScreen(colorRun, DEFAULT, "Digita help per una lista dei comandi\n");
+			printf("\e[1;1H\e[2J");
+			printf("Benvenuto nel terminale utente!\n");
+			printf("Digita help per una lista dei comandi\n");
 		}	
 
 		//Creo il thread con la parte di autorizzazione
@@ -139,6 +150,40 @@ int main(int argc,char **argv) //server --max --win --test --color
 
 		//Il server legge le risposte da serverAnswerFIFO
 		char message[MAX_MESSAGE_SIZE*clientsMaxNumber];
+		
+		//se è una run di test lancio i clients
+		/*if(testRun!=0)
+		{
+			if(fork()==0)
+			{
+				char buffer[500];
+				char* c;
+				char* past;
+				
+				//lancio il tread di attesa
+				//pthread_t waiting;
+				//pthread_create (&waiting, NULL, &waitingThread, NULL);
+
+				strcpy(buffer, argv[0]);
+				c=buffer;
+				while(1)
+				{
+					past = c;
+					c=strchr(c, '/');
+					if (c==NULL)
+					{
+						break;
+					}
+					c++;
+				}
+				strcpy(past, "../test/launchClients");
+				char par1[20];
+				char par2[20];
+				sprintf(par1,"%d",clientsMaxNumber);
+				sprintf(par2,"%d",maxPoints);
+				execl(buffer,buffer,par1,par2,(char*)0);
+			}
+		}*/
 
 		//Ciclo continuamente per leggere i messaggi dei clients
 		while (1) 
@@ -153,7 +198,7 @@ int main(int argc,char **argv) //server --max --win --test --color
 				i++;
 
 				sprintf(stringBuffer, "%s ha risposto %s alla domanda %s\n", clientData[atoi(answer->parameters[0])]->name, answer->parameters[2],  questions[atoi(answer->parameters[1])].question->text);
-				printScreen(colorRun, GAME, stringBuffer);
+				print(GAME, stringBuffer);
 				
 				int result = checkAnswer(answer);				
 				ClientData* client = getSender(answer);

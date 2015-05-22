@@ -87,7 +87,7 @@ test:
 	@make launchClients.o
 	$(CC) $(CFLAGS) $(TEST_BIN)/launchClients.o -o $(TEST_BIN)/launchClients
 	@make assets_clean
-	$(BIN)/startGame --server --win $(TEST_WIN_POINTS) --max $(TEST_CLIENT) --test > logs/serverOutput.log
+	$(BIN)/startGame --server --win $(TEST_WIN_POINTS) --max $(TEST_CLIENT) --test
 	#$(TEST_BIN)/launchClients $(TEST_CLIENT) $(TEST_WIN_POINTS)
 
 game_wrapper: 

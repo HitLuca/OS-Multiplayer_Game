@@ -47,4 +47,6 @@ char stringBuffer[2000];
 Message* parseMessage(char *message);
 Message** parseMessages(char *messages,int size);
 void printScreen(int test, tags tag, char* message);
+void printFile(FILE* file, tags tag, char* message);
+
 #endif

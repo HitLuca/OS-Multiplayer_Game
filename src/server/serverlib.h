@@ -45,6 +45,7 @@ ClientData** clientData;
 int testRun;
 int colorRun;
 FILE* testFile;
+FILE* logFile;
 
 //Funzioni lato server
 void* authorizationThread(void* arg);
@@ -79,5 +80,6 @@ void kickAll();
 void kickPlayers(char ** players,int playerNumber);
 void print(tags tag, char* message);
 void* waitingThread(void* arg);
+void deallocResources();
 
 #endif

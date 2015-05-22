@@ -144,3 +144,35 @@ void printScreen(int color, tags tag, char* message)
 		}
 	}
 }
+
+void printFile(FILE* file, tags tag, char* message)
+{
+	switch(tag)
+	{
+		case GAME:
+		{
+			fprintf(file,"[GAME] %s", message);
+			break;
+		}
+		case INFO:
+		{
+			fprintf(file,"[INFO] %s", message);
+			break;
+		}
+		case ERROR:
+		{
+			fprintf(file,"[ERROR] %s", message);
+			break;
+		}
+		case AUTH:
+		{
+			fprintf(file,"[AUTH] %s", message);
+			break;
+		}
+		case DEFAULT:
+		{
+			fprintf(file,"%s", message);
+			break;
+		}
+	}
+}

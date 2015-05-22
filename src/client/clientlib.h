@@ -28,6 +28,7 @@ int connected;
 int newQuestion;
 int endGame;
 FILE* testFile;
+FILE* logFile;
 int testRun;
 int colorRun;
 
