@@ -8,11 +8,11 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#define MAX_QUESTION_SIZE 2000
+#define MAX_QUESTION_SIZE 1000
 #define MAX_QUESTION_NUM 100
-#define MAX_WAIT 1
+#define MAX_WAIT 100
 #define CORRECT_PERCENTAGE 75
-#define MIN_OFFSET 100
+#define MIN_OFFSET 0
 
 void GenerateNewQuestion(int index);
 
@@ -23,9 +23,7 @@ char** answers;
 int clientsNumber;
 int maxPoints;
 
-//Questo programma permette di creare gli assets da usare per lanciare il make test e make intensive_test
-//se la variabile maxPoints è =0 allora stiamo generando gli assets per make intensive_test
-int main(int argc,char** argv) // testGenerator nClients maxPoints
+int main(int argc,char** argv)
 {
 	char questionsFilePath[1000];
 	char clientFilePath[1000];
@@ -50,7 +48,6 @@ int main(int argc,char** argv) // testGenerator nClients maxPoints
 	
 	long long timePassed=0;
 	
-	//Creo e apro i files necessari per la scrittura degli assets
 	answers = (char**)malloc(sizeof(char*)*questionNumber);
 	questions = (char**)malloc(sizeof(char*)*questionNumber);
 	
@@ -81,7 +78,8 @@ int main(int argc,char** argv) // testGenerator nClients maxPoints
 	fprintf(questionsFile,"end\n");
 	fclose(questionsFile);
 	
-	//Ciclo per aprire i files dei client e scrivere le informazioni di base come nome giocatore e altro
+	
+
 	int* points=(int*)malloc(sizeof(int)*clientsNumber);
 	int* lastInteraction=(int*)malloc(sizeof(int)*clientsNumber);
 	int* login=(int*)malloc(sizeof(int)*clientsNumber);
@@ -99,6 +97,8 @@ int main(int argc,char** argv) // testGenerator nClients maxPoints
 		playerFile[i]=fopen(path,"w");
 	}
 	
+	
+	
 	srand(time(NULL));
 	int startPoints=clientsNumber;
 	int currentQuestion=0;
@@ -110,7 +110,7 @@ int main(int argc,char** argv) // testGenerator nClients maxPoints
 		logFile=fopen(logFilePath,"w");
 		fprintf(logFile,"[GAME] La nuova domanda e' %s, ha risposta %s\n",questions[0],answers[0]);
 	}
-	
+	int nAnswer=0;
 	while(1)
 	{
 		chosen=rand()%clientsNumber;
@@ -134,6 +134,7 @@ int main(int argc,char** argv) // testGenerator nClients maxPoints
 		if(login[chosen]==0)
 		{
 			login[chosen]=1;
+		
 			fprintf(playerFile[chosen],"Player%d\n",chosen+1);
 			points[chosen]=startPoints;
 			if(maxPoints>0)
@@ -176,7 +177,7 @@ int main(int argc,char** argv) // testGenerator nClients maxPoints
 			}
 			else //altrimenti faccio rispondere i clients a caso
 			{
-				fprintf(playerFile[chosen],"%s\n",(rand()%2)+1);
+				fprintf(playerFile[chosen],"%d\n",(rand()%2)+1);
 				nAnswer++;
 			}
 			
@@ -188,13 +189,15 @@ int main(int argc,char** argv) // testGenerator nClients maxPoints
 				}
 				break;
 			}
-			else if(points[chosen]>=maxPoints)
+			else if(points[chosen]>=maxPoints && maxPoints!=0)
 			{
-				if(maxPoints)
-				{
-					fprintf(logFile,"[GAME] Il giocatore Player%d ha vinto\n",chosen+1);
-					fprintf(logFile,"[GAME] La partita e' terminata\n");
-				}
+				fprintf(logFile,"[GAME] Il giocatore Player%d ha vinto\n",chosen+1);
+				fprintf(logFile,"[GAME] La partita e' terminata\n\n");
+				
+				break;
+			}
+			else if(nAnswer==3*questionNumber*clientsNumber)
+			{
 				break;
 			}
 		}
@@ -214,12 +217,19 @@ int main(int argc,char** argv) // testGenerator nClients maxPoints
 		fclose(playerFile[i]);
 	}
 	
-	printf("File di test generati,\nil test richiedera' %lld secondi\n\n",(timePassed)/1000);
+	printf("[\x1b[33mINFO\x1b[0m]File di test generati,\n");
+	if(maxPoints==0)
+	{
+		printf("[\x1b[33mINFO\x1b[0m]il test richiedera' al piu' %lld secondi\n",(timePassed)/1000);
+	}
+	else
+	{
+		printf("[\x1b[33mINFO\x1b[0m]il test richiedera' %lld secondi\n",(timePassed)/1000);
+	}
 	
 	return 0;
 }
 
-//Funzione che genera le nuove domande
 void GenerateNewQuestion(int index){
 	
 	char *newText=(char*)malloc(MAX_QUESTION_SIZE*sizeof(char));
@@ -232,12 +242,12 @@ void GenerateNewQuestion(int index){
 	int num1,num2,answ;
 	char op[2];
 	
-	if(maxPoints>0) //Domande pseudo-random
+	if(maxPoints>0)
 	{	
 		num1=rand()%MAX_QUESTION_NUM;
 		num2=rand()%MAX_QUESTION_NUM;
 	}
-	else //solo 0+1 1+1
+	else
 	{	
 		num1=rand()%2;
 		num2=1;
