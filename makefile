@@ -333,7 +333,7 @@ delete_assets:
 check_logs:
 	@echo $(NOTIFY_STRING) Rimozione files di log non utilizzati
 	@if [ -s log/gcc.log ] ; then \
-	@echo; \
+	echo; \
 	else \
 	rm -rf log/gcc.log; \
 	fi
