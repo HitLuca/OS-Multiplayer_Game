@@ -13,6 +13,7 @@
 //Handler per le uscite dal programma, libero le risorse e avverto i client che non sono più disponibile
 void handler ()
 {  
+	printf("SONO USCITO\n");
 	broadcastServerClosed();
 	deallocResources();
 }
@@ -21,7 +22,7 @@ void handler ()
 void* authorizationThread(void* arg)
 {
 	//Avvio il monitoraggio delle autorizzazioni
-	serverAuthFIFO = open(SERVER_AUTHORIZATION_FIFO,O_RDWR);
+	
 	char* clientMessage=(char*)malloc((MAX_MESSAGE_SIZE*clientsMaxNumber)*sizeof(char));
 	char serverMessage[MAX_MESSAGE_SIZE];
 	char fifoPath [MAX_FIFO_NAME_SIZE];
@@ -903,27 +904,27 @@ void deallocResources()
 void* waitingThread(void* arg)
 {
 	useconds_t useconds=90000L;
-	fprintf(stderr,"waiting \\");
+	fprintf(stderr,"waiting     ");
 	int i=0;
 	while(1)
 	{
-		fprintf(stderr,"\b|");
+		fprintf(stderr,"\b\b\b\b\u2591   ");
 		fflush(stdout);
 		usleep(useconds);
-		fprintf(stderr,"\b/");
+		fprintf(stderr,"\b\b\b\b\u2592   ");
 		fflush(stdout);
 		usleep(useconds);
-		fprintf(stderr,"\b-");
+		fprintf(stderr,"\b\b\b\b\u2593   ");
 		fflush(stdout);
 		usleep(useconds);
-		fprintf(stderr,"\b\\");
+		fprintf(stderr,"\b\b\b\b\u2588   ");
 		fflush(stdout);
 		usleep(useconds);
 		i++;
 		if(i>5)
 		{
 			i=0;
-			fprintf(stderr,"\b=-");
+			fprintf(stderr,"\b\b\b\u2588    ",219);
 			fflush(stdout);
 		}
 	}

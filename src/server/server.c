@@ -128,6 +128,7 @@ int main(int argc,char **argv) //server --max --win --test --color
 		}	
 
 		//Creo il thread con la parte di autorizzazione
+		serverAuthFIFO = open(SERVER_AUTHORIZATION_FIFO,O_RDWR);
 		pthread_t authorization;
 		pthread_create (&authorization, NULL, &authorizationThread, NULL);
 
@@ -152,38 +153,24 @@ int main(int argc,char **argv) //server --max --win --test --color
 		char message[MAX_MESSAGE_SIZE*clientsMaxNumber];
 		
 		//se è una run di test lancio i clients
-		/*if(testRun!=0)
+		if(testRun!=0)
 		{
 			if(fork()==0)
 			{
-				char buffer[500];
-				char* c;
-				char* past;
-				
-				//lancio il tread di attesa
-				//pthread_t waiting;
-				//pthread_create (&waiting, NULL, &waitingThread, NULL);
-
-				strcpy(buffer, argv[0]);
-				c=buffer;
-				while(1)
-				{
-					past = c;
-					c=strchr(c, '/');
-					if (c==NULL)
-					{
-						break;
-					}
-					c++;
-				}
-				strcpy(past, "../test/launchClients");
+				char launchClientsPath[500];
 				char par1[20];
 				char par2[20];
+				strcpy(launchClientsPath,currentPath);
+				strcat(launchClientsPath,"../test/launchClients");
 				sprintf(par1,"%d",clientsMaxNumber);
-				sprintf(par2,"%d",maxPoints);
-				execl(buffer,buffer,par1,par2,(char*)0);
+				sprintf(par2,"%d",winPoints);
+				execl(launchClientsPath,launchClientsPath,par1,par2,(char*)0);
 			}
-		}*/
+		
+			pthread_t waiting;
+			pthread_create (&waiting, NULL, &waitingThread, NULL);
+			
+		}
 
 		//Ciclo continuamente per leggere i messaggi dei clients
 		while (1) 
