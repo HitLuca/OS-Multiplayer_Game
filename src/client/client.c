@@ -45,6 +45,13 @@ int main(int argc, char** argv) //client --test --color
 		colorRun = 0;
 	}
 	
+	//provo ad aprire la fifo di autorizzazione del server
+	serverAuthFIFO = open(SERVER_AUTHORIZATION_FIFO,O_WRONLY);
+	if(serverAuthFIFO==-1 )	//se la fifo non è presente significa che non vi è nessun server
+	{
+		print(ERROR, "Server non presente\n");
+		return 1;
+	}
 
 	//genero il nome della mia fifo univocamente utilizzando il PID e faccio il paring
 	char pid[100];
@@ -127,19 +134,11 @@ int main(int argc, char** argv) //client --test --color
 	strcat(logFilePath,".log");
 	logFile = fopen(logFilePath,"w");
 	
-	//provo ad aprire la fifo di autorizzazione del server
-	serverAuthFIFO = open(SERVER_AUTHORIZATION_FIFO,O_WRONLY);
-	
 	if(testRun==0)
 	{
 		printf("\e[1;1H\e[2J");
 	}
 
-	if(serverAuthFIFO==-1 )	//se la fifo non è presente significa che non vi è nessun server
-	{
-		print(ERROR, "Server non presente\n");
-		return 1;
-	}
 	
 	//mando un messaggio al server richiedendo l'autorizzazione e passandogli il mio pid e il mio username
 	char *message = authRequestMessage(pid,username);
@@ -152,11 +151,25 @@ int main(int argc, char** argv) //client --test --color
 		read(inMessageFIFO,answerBuffer,MAX_MESSAGE_SIZE);
 		Message *answer = parseMessage(answerBuffer);
 		
+		
 		int answerResult = checkServerAuthResponse(answer);
 		
 		if(answerResult<0)
 		{
-			sprintf(stringBuffer, "Errore %d\n",answerResult); //TODO gestire i codici di errore
+			if(answerResult==-3)
+			{
+				print( ERROR, "Il server è pieno\n");
+			}
+			else if (answerResult==-4)
+			{
+				print( ERROR, "Il nome è già stato usato da un altro giocatore\n");
+			}
+			else if(answerResult==-5)
+			{
+				print( ERROR, "\"all\" non può essere scelto come username\n");
+			}
+			deallocResources();
+			return answerResult;
 			print( ERROR, stringBuffer);
 			deallocResources();
 			return answerResult;
@@ -187,24 +200,11 @@ int main(int argc, char** argv) //client --test --color
 
 			//Componenti del thread bash
 			pthread_t bash;
+			
+			
 			char arg[MAX_MESSAGE_SIZE];
 			if(testRun==0)
 			{
-
-				if(answerResult==-3)
-				{
-					print( ERROR, "Il server è pieno\n");
-				}
-				else if (answerResult==-4)
-				{
-					print( ERROR, "Il nome è già stato usato da un altro giocatore\n");
-				}
-				else if(answerResult==-5)
-				{
-					print( ERROR, "\"all\" non può essere scelto come username\n");
-				}
-				deallocResources();
-				return answerResult;
 				pthread_create (&bash, NULL, &userInput, arg);
 			}
 			else

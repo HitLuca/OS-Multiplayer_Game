@@ -13,7 +13,6 @@
 //Handler per le uscite dal programma, libero le risorse e avverto i client che non sono più disponibile
 void handler ()
 {  
-	printf("SONO USCITO\n");
 	broadcastServerClosed();
 	deallocResources();
 }
@@ -904,10 +903,53 @@ void deallocResources()
 void* waitingThread(void* arg)
 {
 	useconds_t useconds=90000L;
-	fprintf(stderr,"waiting     ");
+	fprintf(stderr,"running test...\n\n");
 	int i=0;
+	int j=0;
+	int size=50;
+	int d=8;
+	int f=12;
+	char c1[]="\u2593";
+	char c2[]="\u2592";
+	char c3[]="\u2591";
+	char c4[]="\u2588";
+	
+	/*
+	char c1[]="\x1b[30m\u2588\x1b[0m";
+	char c2[]="\x1b[37m\u2588\x1b[0m";
+	char c3[]="\x1b[36m\u2588\x1b[0m";
+	char c4[]="\x1b[34m\u2588\x1b[0m";*/
+	
 	while(1)
 	{
+		printf("\r");
+		printf("       \x1b[34m");
+		for(j=0;j<size;j++)
+		{
+			if(j%d==(i-2)%size%d || j%d==(i+2)%size%d )
+			{
+				printf("%s",c1);
+			}
+			else if(j%d==(i-1)%size%d || j%d==(i+1)%size%d)
+			{
+				printf("%s",c2);
+			}
+			else if(i%d==j%d)
+			{
+				printf("%s",c3);
+			}
+			else
+			{
+				printf("%s",c4);
+			}
+			
+		}
+		printf("      \x1b[0m");
+		fflush(stdout);
+		usleep(useconds);
+		i++;
+		i=i%size;
+		/*
 		fprintf(stderr,"\b\b\b\b\u2591   ");
 		fflush(stdout);
 		usleep(useconds);
@@ -926,6 +968,6 @@ void* waitingThread(void* arg)
 			i=0;
 			fprintf(stderr,"\b\b\b\u2588    ",219);
 			fflush(stdout);
-		}
+		}*/
 	}
 }
