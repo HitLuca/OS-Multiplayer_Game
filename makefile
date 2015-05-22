@@ -10,7 +10,7 @@ TEST_WIN_POINTS=15
 
 #Variabile contenente il risultato del check delle differenze tra output server e output aspettato
 #Usata con il comando make test
-DIFF=$( diff assets/server/server.log log/server/server.log)
+DIFF=$(diff assets/server/server.log log/server/server.log)
 
 #Variabile contenente il percorso assoluto al progetto
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
@@ -114,7 +114,8 @@ test: log_dir
 	@echo $(NOTIFY_STRING) Avvio del server per il testing
 	$(BIN)/startGame --server --win $(TEST_WIN_POINTS) --max $(TEST_CLIENT) --test
 
-	#Controllo delle differenze tra output attuale e previsto
+	@echo
+	@#Controllo delle differenze tra output attuale e previsto
 	@echo $(WARN_STRING) Controllo delle differenze tra output attuale e previsto...
 	@if [ "$(DIFF)" != "" ]; then \
 	echo $(ERROR_STRING) i files $(ERROR_COLOR)NON COINCIDONO$(NO_COLOR); \
