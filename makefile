@@ -87,11 +87,27 @@ assets: date_write log_dir assets_dirs
 	@rm log/assets_wrapper.log
 	@make check_logs
 
+intensive_assets: date_write log_dir assets_dirs
+	@make intensive_assets_wrapper | tee log/intensive_assets_wrapper.log
+	@cat log/intensive_assets_wrapper.log | grep -v '\[' > log/intensive_assets_build.log
+	@rm log/intensive_assets_wrapper.log
+	@make check_logs
+
 test: log_dir
 	@make bin
 	@make assets
 	@make test_wrapper | tee log/test_wrapper.log
 	@cat log/test_wrapper.log | grep -v '\[' > log/test_build.log
+	@rm log/test_wrapper.log
+	@make check_logs
+	@echo $(NOTIFY_STRING) Avvio del server per il testing
+	$(BIN)/startGame --server --win $(TEST_WIN_POINTS) --max $(TEST_CLIENT) --test
+
+intensive_test: log_dir
+	@make bin
+	@make intensive_assets
+	@make test_wrapper | tee log/test_wrapper.log
+	@cat log/test_wrapper.log | grep -v '\[' > log/intensive_test_build.log
 	@rm log/test_wrapper.log
 	@make check_logs
 	@echo $(NOTIFY_STRING) Avvio del server per il testing
@@ -124,10 +140,21 @@ assets_wrapper:
 	./$(TEST_BIN)/testGenerator $(TEST_CLIENT) $(TEST_WIN_POINTS)
 	@echo $(NOTIFY_STRING) Assets creati
 
+intensive_assets_wrapper:
+	@make assets_objects
+	@echo $(NOTIFY_STRING) Pulizia files residui
+	@make assets_clean
+	@echo $(NOTIFY_STRING) Fine
+	@make delete_assets
+	@echo $(NOTIFY_STRING) Creazione degli assets
+	./$(TEST_BIN)/testGenerator $(TEST_CLIENT) 0
+	@echo $(NOTIFY_STRING) Assets creati
+
 test_wrapper:
 	@make launchClients.o
 	$(CC) $(CFLAGS) $(TEST_BIN)/launchClients.o -o $(TEST_BIN)/launchClients 2> log/gcc.log
 	@make assets_clean
+
 
 #Creazione dei file linkati client server e startGame, necessari i file oggetto (*.o)
 game_objects:  game_dirs $(GAME_OBJECTS)
