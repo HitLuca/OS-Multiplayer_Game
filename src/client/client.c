@@ -21,6 +21,8 @@ int main(int argc, char** argv) //client --test --color
 	sigaction (SIGQUIT, &sa, NULL);
 	sigaction (SIGINT, &sa, NULL);
 	
+
+	
 	connected=0;
 	testRun=0;
 	
@@ -43,11 +45,11 @@ int main(int argc, char** argv) //client --test --color
 		colorRun = 0;
 	}
 	
-
+	
 	//provo ad aprire la fifo di autorizzazione del server
 	serverAuthFIFO = open(SERVER_AUTHORIZATION_FIFO,O_WRONLY);
 	
-	print(DEFAULT, "\e[1;1H\e[2J");
+	printf("\e[1;1H\e[2J");
 
 	if(serverAuthFIFO==-1 )	//se la fifo non è presente significa che non vi è nessun server
 	{
@@ -73,6 +75,24 @@ int main(int argc, char** argv) //client --test --color
 		}
 		
 		
+		//setto il percorso corrente
+		char currentPath[500];
+		char* c;
+		char* past;
+		strcpy(currentPath, argv[0]);
+		c=currentPath;
+		while(1)
+		{
+			past = c;
+			c=strchr(c, '/');
+			if (c==NULL)
+			{
+				break;
+			}
+			c++;
+		}
+		strcpy(past,"\0");
+		
 		char* testFileName=(char*)malloc(sizeof(char)*10);
 		strcpy(testFileName,argv[1]);
 		
@@ -93,26 +113,12 @@ int main(int argc, char** argv) //client --test --color
 		}
 		else //altrimenti lo leggo da file
 		{
-			char filePath[500];
-	        char* c;
-	        char* past;
-
-	        strcpy(filePath, argv[0]);
-	        c=filePath;
-	        while(1)
-	        {
-	            past = c;
-	            c=strchr(c, '/');
-	            if (c==NULL)
-	            {
-	                break;
-	            }
-	            c++;
-	        }
-	        strcpy(past, "../../assets/client/");
-			strcat(filePath,testFileName);
-			strcat(filePath,".test");
-			testFile = fopen(filePath,"r");
+			char testFilePath[500];
+			strcpy(testFilePath,currentPath);
+			strcat(testFilePath,"../../assets/client/");
+			strcat(testFilePath,testFileName);
+			strcat(testFilePath,".test");
+			testFile = fopen(testFilePath,"r");
 			if(testFile==NULL)
 			{
 				print(ERROR, "Errore apertura file di test\n\n");
@@ -124,6 +130,14 @@ int main(int argc, char** argv) //client --test --color
 			fscanf(testFile,"%s",username);
 			sleep(atoi(delay)/1000.0);
 		}
+		
+		//apro il file di log
+		char logFilePath[500];
+		strcpy(logFilePath,currentPath);
+		strcat(logFilePath,"../../log/client/");
+		strcat(logFilePath,username);
+		strcat(logFilePath,".log");
+		logFile = fopen(logFilePath,"w");
 		
 		//mando un messaggio al server richiedendo l'autorizzazione e passandogli il mio pid e il mio username
 		char *message = authRequestMessage(pid,username);

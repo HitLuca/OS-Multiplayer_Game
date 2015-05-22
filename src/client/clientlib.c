@@ -147,6 +147,11 @@ void initializeClientData(Message *message){
 //{idClient|idQuestion|answer}
 void sendResponse(int serverAnswerFIFO, char* answer)
 {
+	if(logFile!=NULL)
+	{
+		fprintf(logFile,answer);
+		fprintf(logFile,"\n");
+	}
 	char* message= malloc(MAX_MESSAGE_SIZE*sizeof(char)); 
 	strcpy(message, clientData->id);
 	strcat(message, "|");
@@ -175,6 +180,14 @@ void setNewQuestion(Message *message)
 void deallocResources(){
 	close(inMessageFIFO);
 	unlink(messageFIFOName);
+	if(testFile!=NULL)
+	{
+		fclose(testFile);
+	}
+	if(logFile!=NULL)
+	{
+		fclose(logFile);
+	}
 }
 
 void print(tags tag,char* message)
@@ -183,5 +196,10 @@ void print(tags tag,char* message)
 	{
 		printf("\r                                \r");
 		printScreen(colorRun,tag,message);
+	}
+	if(logFile!=NULL)
+	{	
+		printFile(logFile,tag,message);
+		fflush(logFile);
 	}
 }

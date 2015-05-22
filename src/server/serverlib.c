@@ -871,22 +871,29 @@ void print(tags tag, char* message)
 		printScreen(colorRun,tag,message);
 		printf(BASH);
 	}
-
-	printFile(logFile,tag,message);
-	fflush(logFile);
+	if(logFile!=NULL)
+	{
+		printFile(logFile,tag,message);
+		fflush(logFile);
+	}
 }
 
 void deallocResources()
 {
-	close(serverAnswerFIFO);
+	printf("\n");
+	
 	close(serverAuthFIFO);
-	unlink(SERVER_ANSWER_FIFO);
 	unlink(SERVER_AUTHORIZATION_FIFO);
+	
+	close(serverAnswerFIFO);
+	unlink(SERVER_ANSWER_FIFO);
+
+
 	if(logFile!=NULL)
 	{
 		fclose(logFile);
 	}
-	if(testRun!=0)
+	if(testFile!=NULL)
 	{
 		fclose(testFile);
 	}	
