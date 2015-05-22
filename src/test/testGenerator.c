@@ -13,6 +13,7 @@
 #define MAX_WAIT 1
 #define CORRECT_PERCENTAGE 75
 #define MIN_OFFSET 100
+#define ANSW_NUMBER 1000
 
 void GenerateNewQuestion(int index);
 
@@ -73,6 +74,7 @@ int main(int argc,char** argv)
 	fprintf(questionsFile,"end\n");
 	fclose(questionsFile);
 	
+	
 
 	int* points=(int*)malloc(sizeof(int)*clientsNumber);
 	int* lastInteraction=(int*)malloc(sizeof(int)*clientsNumber);
@@ -91,6 +93,8 @@ int main(int argc,char** argv)
 		playerFile[i]=fopen(path,"w");
 	}
 	
+	
+	
 	srand(time(NULL));
 	int startPoints=clientsNumber;
 	int currentQuestion=0;
@@ -102,7 +106,7 @@ int main(int argc,char** argv)
 		logFile=fopen(logFilePath,"w");
 		fprintf(logFile,"[GAME] La nuova domanda e' %s, ha risposta %s\n",questions[0],answers[0]);
 	}
-	
+	int nAnswer=0;
 	while(1)
 	{
 		chosen=rand()%clientsNumber;
@@ -126,6 +130,7 @@ int main(int argc,char** argv)
 		if(login[chosen]==0)
 		{
 			login[chosen]=1;
+		
 			fprintf(playerFile[chosen],"Player%d\n",chosen+1);
 			points[chosen]=startPoints;
 			if(maxPoints>0)
@@ -168,7 +173,8 @@ int main(int argc,char** argv)
 			}
 			else //altrimenti faccio rispondere i clients a caso
 			{
-				fprintf(playerFile[chosen],"%s\n",(rand()%2)+1);
+				fprintf(playerFile[chosen],"%d\n",(rand()%2)+1);
+				nAnswer++;
 			}
 			
 			if(currentQuestion>questionNumber)
@@ -179,13 +185,15 @@ int main(int argc,char** argv)
 				}
 				break;
 			}
-			else if(points[chosen]>=maxPoints)
+			else if(points[chosen]>=maxPoints && maxPoints!=0)
 			{
-				if(maxPoints)
-				{
-					fprintf(logFile,"[GAME] Il giocatore Player%d ha vinto\n",chosen+1);
-					fprintf(logFile,"[GAME] La partita e' terminata\n");
-				}
+				fprintf(logFile,"[GAME] Il giocatore Player%d ha vinto\n",chosen+1);
+				fprintf(logFile,"[GAME] La partita e' terminata\n\n");
+				
+				break;
+			}
+			else if(nAnswer==ANSW_NUMBER)
+			{
 				break;
 			}
 		}

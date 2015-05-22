@@ -14,7 +14,6 @@ fare gli schemi della relazione
 
 
 Marco
-1)fixare il testing
 2)reimplementare la funzione di classifica
 3)accordarsi sulla struttura della relazione
 
@@ -23,3 +22,6 @@ Luca
 2)commentare tutto
 3)controllare che passando prametri a caso non crashi
 4)accordarsi sulla struttura della relazione
+
+DONE
+fixare il testing
