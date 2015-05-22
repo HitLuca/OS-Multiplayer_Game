@@ -9,7 +9,7 @@
 #include <pthread.h>
 
 #define MAX_QUESTION_SIZE 2000
-#define MAX_QUESTION_NUM 500
+#define MAX_QUESTION_NUM 100
 #define MAX_WAIT 1
 #define CORRECT_PERCENTAGE 75
 #define MIN_OFFSET 100

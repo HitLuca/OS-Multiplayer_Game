@@ -1,0 +1,25 @@
+TODO
+grafica start sever/client
+grafica makefile
+terminale client/server con prompt a fondo pagina* (fix bash server)
+testing
+scrivere la relazione
+fare gli schemi della relazione 
+
+
+
+
+
+
+
+
+Marco
+1)fixare il testing
+2)reimplementare la funzione di classifica
+3)accordarsi sulla struttura della relazione
+
+Luca
+1)make intesinveTest //chiama startgame normalmente ma genera gli assets passando a makeTest solo il numero di giocatori
+2)commentare tutto
+3)controllare che passando prametri a caso non crashi
+4)accordarsi sulla struttura della relazione
