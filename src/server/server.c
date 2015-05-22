@@ -98,7 +98,7 @@ int main(int argc,char **argv) //server --max --win --test --color
 		//apro e creo il file di log;
 		char logFilePath[500];
 		strcpy(logFilePath,currentPath);
-		strcat(logFilePath,"../../logs/server.log");
+		strcat(logFilePath,"../../log/server/server.log");
 		logFile=fopen(logFilePath,"w");
 		if(logFile==NULL)
 		{
