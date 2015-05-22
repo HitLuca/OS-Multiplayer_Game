@@ -1,5 +1,5 @@
 #Elenco delle regole non corrispondenti ad un file fisico (per non aggiungere dipendenze alla regola)
-.PHONY: all default bin assets game_wrapper assets_wrapper test_wrapper game_dirs assets_dirs log_dir game_clean assets_clean clean objects
+.PHONY: all default bin assets game_wrapper assets_wrapper test_wrapper game_dirs assets_dirs log_dir game_clean assets_clean clean objects revert
 
 #Compilatore usato
 CC=gcc
@@ -52,22 +52,27 @@ default:
 	@echo "                             "$(OK_COLOR)"Luca "$(NO_COLOR)"| "$(OK_COLOR)"Marco"$(NO_COLOR)
 	@echo "                           "$(OK_COLOR)"166540 "$(NO_COLOR)"| "$(OK_COLOR)"165183"$(NO_COLOR)
 	@echo
-	@echo Descrizione progetto:
-	@echo "    Gioco multiplayer locale in cui un server invia operazioni" 
-	@echo "    matematiche ai client e ne aspetta le risposte assegnando "
-	@echo "    o togliendo punti in base alla loro correttezza"
+	@echo $(WARN_COLOR)"Descrizione progetto:"$(NO_COLOR)
+	@echo "    Gioco multiplayer locale in cui un server invia domande di vario" 
+	@echo "    tipo ai client e ne aspetta le risposte assegnando o togliendo"
+	@echo "    punti in base alla loro correttezza"
 	@echo
-	@echo Opzioni makefile
+	@echo $(WARN_COLOR)"Opzioni makefile:"$(NO_COLOR)
 	@echo "   "$(ERROR_COLOR)"bin"$(NO_COLOR)":    Compila i files e li rende disponibili"
-	@echo "           nella cartella bin/. Viene creato inoltre il file build.log e gcc.log nella cartella log"
+	@echo "           nella cartella bin. Vengono loggate le istruzioni eseguite nella"
+	@echo "           cartella log"
 	@echo "   "$(ERROR_COLOR)"clean"$(NO_COLOR)":  Pulisce il progetto eliminando i file oggetto"
-	@echo "           clean viene chiamato automaticamente con l'uso di make bin"
-	@echo "   "$(ERROR_COLOR)"objects"$(NO_COLOR)": Compila i files e li rende disponibili"
-	@echo "           nella cartella bin/ SENZA richiamare la funzione clean"
+	@echo "           delle chiamate di make assets e make bin. Clean viene chiamato"
+	@echo "           automaticamente"
+	@echo "           con l'uso di make bin e make assets"
+	@echo "   "$(ERROR_COLOR)"objects"$(NO_COLOR)":Compila i files di gioco e li rende disponibili"
+	@echo "           nella cartella bin SENZA richiamare la funzione clean"
 	@echo "   "$(ERROR_COLOR)"assets"$(NO_COLOR)": Crea la cartella assets, contenente i files da"
 	@echo "           utilizzare per la fase di testing del programma"
-	@echo "   "$(ERROR_COLOR)"test"$(NO_COLOR)": Avvia il programma in modalità testing, utilizzando i"
+	@echo "   "$(ERROR_COLOR)"test"$(NO_COLOR)":   Avvia il programma in modalità testing, utilizzando i"
 	@echo "           files contenuti nella cartella assets"
+	@echo "   "$(ERROR_COLOR)"revert"$(NO_COLOR)": Elimina tutti i files creati dal makefile e eventuali"
+	@echo "           files di log e asset, ricreando la gerarchia di cartelle iniziale"
 
 #Per la creazione del file build.log ho creato un wrapper per non dover far scrivere all'utente make bin |tee a.log 
 bin: date_write log_dir
@@ -88,9 +93,16 @@ test: log_dir
 	@make test_wrapper | tee log/test_wrapper.log
 	@cat log/test_wrapper.log | grep -v '\[' > log/test_build.log
 	@rm log/test_wrapper.log
+	@make check_logs
 	@echo $(NOTIFY_STRING) Avvio del server per il testing
 	$(BIN)/startGame --server --win $(TEST_WIN_POINTS) --max $(TEST_CLIENT) --test
-	@make check_logs
+
+revert:
+	@echo $(NOTIFY_STRING) Inizio revert del progetto
+	rm -rf bin
+	rm -rf assets
+	rm -rf log
+	@echo $(NOTIFY_STRING) Fine revert
 
 date_write:
 	date
