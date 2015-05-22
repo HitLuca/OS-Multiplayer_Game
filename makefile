@@ -4,9 +4,13 @@
 #Compilatore usato
 CC=gcc
 
-#<----------------------------------------
+#valori di default per la fase di testing
 TEST_CLIENT=5
 TEST_WIN_POINTS=15
+
+#Variabile contenente il risultato del check delle differenze tra output server e output aspettato
+#Usata con il comando make test
+DIFF=$(diff assets/server/server.log log/server/server.log)
 
 #Variabile contenente il percorso assoluto al progetto
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
@@ -59,11 +63,11 @@ default:
 	@echo
 	@echo $(WARN_COLOR)"Opzioni makefile:"$(NO_COLOR)
 	@echo "   "$(ERROR_COLOR)"bin"$(NO_COLOR)":    Compila i files e li rende disponibili"
-	@echo "           nella cartella bin. Vengono loggate le istruzioni eseguite nella"
-	@echo "           cartella log"
+	@echo "           nella cartella bin. Vengono loggate le istruzioni eseguite"
+	@echo "           nella cartella log"
 	@echo "   "$(ERROR_COLOR)"clean"$(NO_COLOR)":  Pulisce il progetto eliminando i file oggetto"
-	@echo "           delle chiamate di make assets e make bin. Clean viene chiamato"
-	@echo "           automaticamente"
+	@echo "           delle chiamate di make assets e make bin."
+	@echo "           Clean viene chiamato automaticamente"
 	@echo "           con l'uso di make bin e make assets"
 	@echo "   "$(ERROR_COLOR)"objects"$(NO_COLOR)":Compila i files di gioco e li rende disponibili"
 	@echo "           nella cartella bin SENZA richiamare la funzione clean"
@@ -71,9 +75,13 @@ default:
 	@echo "           utilizzare per la fase di testing del programma"
 	@echo "   "$(ERROR_COLOR)"test"$(NO_COLOR)":   Avvia il programma in modalità testing, utilizzando i"
 	@echo "           files contenuti nella cartella assets"
+	@echo "   "$(ERROR_COLOR)"intensive_test"$(NO_COLOR)": Avvia il programma in modalità testing intensivo"
+	@echo "           con domande e risposte casuali. Richiede però più"
+	@echo "           tempo, a favore della precisione"
 	@echo "   "$(ERROR_COLOR)"revert"$(NO_COLOR)": Elimina tutti i files creati dal makefile e eventuali"
 	@echo "           files di log e asset, ricreando la gerarchia di cartelle iniziale"
 
+#compila i files e li rende disponibili nella cartella bin bin
 #Per la creazione del file build.log ho creato un wrapper per non dover far scrivere all'utente make bin |tee a.log 
 bin: date_write log_dir
 	@make game_wrapper | tee log/game_wrapper.log #salva l'output dello schermo in un file di log
@@ -81,17 +89,45 @@ bin: date_write log_dir
 	@ rm log/game_wrapper.log
 	@make check_logs
 
+#Crea gli assset da usare
 assets: date_write log_dir assets_dirs
 	@make assets_wrapper | tee log/assets_wrapper.log
 	@cat log/assets_wrapper.log | grep -v '\[' > log/assets_build.log
 	@rm log/assets_wrapper.log
 	@make check_logs
 
+#crea i files di asset da usare per il test intensivo
+intensive_assets: date_write log_dir assets_dirs
+	@make intensive_assets_wrapper | tee log/intensive_assets_wrapper.log
+	@cat log/intensive_assets_wrapper.log | grep -v '\[' > log/intensive_assets_build.log
+	@rm log/intensive_assets_wrapper.log
+	@make check_logs
+
+#Chiama bin e assets e poi avvia il testing del programma
 test: log_dir
 	@make bin
 	@make assets
 	@make test_wrapper | tee log/test_wrapper.log
 	@cat log/test_wrapper.log | grep -v '\[' > log/test_build.log
+	@rm log/test_wrapper.log
+	@make check_logs
+	@echo $(NOTIFY_STRING) Avvio del server per il testing
+	$(BIN)/startGame --server --win $(TEST_WIN_POINTS) --max $(TEST_CLIENT) --test
+
+	@echo
+	@#Controllo delle differenze tra output attuale e previsto
+	@echo $(WARN_STRING) Controllo delle differenze tra output attuale e previsto...
+	@if [ "$(DIFF)" != "" ]; then \
+	echo $(ERROR_STRING) i files $(ERROR_COLOR)NON COINCIDONO$(NO_COLOR); \
+	else \
+	echo $(NOTIFY_STRING) i files $(OK_COLOR)COINCIDONO$(NO_COLOR); \
+	fi
+
+intensive_test: log_dir
+	@make bin
+	@make intensive_assets
+	@make test_wrapper | tee log/test_wrapper.log
+	@cat log/test_wrapper.log | grep -v '\[' > log/intensive_test_build.log
 	@rm log/test_wrapper.log
 	@make check_logs
 	@echo $(NOTIFY_STRING) Avvio del server per il testing
@@ -124,10 +160,21 @@ assets_wrapper:
 	./$(TEST_BIN)/testGenerator $(TEST_CLIENT) $(TEST_WIN_POINTS)
 	@echo $(NOTIFY_STRING) Assets creati
 
+intensive_assets_wrapper:
+	@make assets_objects
+	@echo $(NOTIFY_STRING) Pulizia files residui
+	@make assets_clean
+	@echo $(NOTIFY_STRING) Fine
+	@make delete_assets
+	@echo $(NOTIFY_STRING) Creazione degli assets
+	./$(TEST_BIN)/testGenerator $(TEST_CLIENT) 0
+	@echo $(NOTIFY_STRING) Assets creati
+
 test_wrapper:
 	@make launchClients.o
 	$(CC) $(CFLAGS) $(TEST_BIN)/launchClients.o -o $(TEST_BIN)/launchClients 2> log/gcc.log
 	@make assets_clean
+
 
 #Creazione dei file linkati client server e startGame, necessari i file oggetto (*.o)
 game_objects:  game_dirs $(GAME_OBJECTS)

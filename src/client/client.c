@@ -156,17 +156,21 @@ int main(int argc, char** argv) //client --test --color
 		
 		if(answerResult<0)
 		{
-			if(answerResult==-3)
+			if (answerResult==-2)
 			{
-				print( ERROR, "Il server è pieno\n");
+				print(ERROR, "Bad request\n");
+			}
+			else if(answerResult==-3)
+			{
+				print(ERROR, "Il server è pieno\n");
 			}
 			else if (answerResult==-4)
 			{
-				print( ERROR, "Il nome è già stato usato da un altro giocatore\n");
+				print(ERROR, "Il nome è già stato usato da un altro giocatore\n");
 			}
 			else if(answerResult==-5)
 			{
-				print( ERROR, "\"all\" non può essere scelto come username\n");
+				print(ERROR, "\"all\" non può essere scelto come username\n");
 			}
 			deallocResources();
 			return answerResult;
