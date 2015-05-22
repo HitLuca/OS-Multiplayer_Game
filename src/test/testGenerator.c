@@ -8,12 +8,11 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#define MAX_QUESTION_SIZE 2000
+#define MAX_QUESTION_SIZE 1000
 #define MAX_QUESTION_NUM 100
-#define MAX_WAIT 1
+#define MAX_WAIT 100
 #define CORRECT_PERCENTAGE 75
-#define MIN_OFFSET 100
-#define ANSW_NUMBER 1000
+#define MIN_OFFSET 0
 
 void GenerateNewQuestion(int index);
 
@@ -53,6 +52,11 @@ int main(int argc,char** argv)
 	questions = (char**)malloc(sizeof(char*)*questionNumber);
 	
 	playerFile=(FILE**)malloc(sizeof(FILE*)*clientsNumber);
+	
+	if(maxPoints==0)
+	{
+		questionNumber=75;
+	}
 	
 	strcpy(questionsFilePath,"assets/server/questions.test");
 	strcpy(logFilePath,"assets/server/server.log");
@@ -192,7 +196,7 @@ int main(int argc,char** argv)
 				
 				break;
 			}
-			else if(nAnswer==ANSW_NUMBER)
+			else if(nAnswer==3*questionNumber*clientsNumber)
 			{
 				break;
 			}
@@ -213,7 +217,15 @@ int main(int argc,char** argv)
 		fclose(playerFile[i]);
 	}
 	
-	printf("File di test generati,\nil test richiedera' %lld secondi\n\n",(timePassed)/1000);
+	printf("[\x1b[33mINFO\x1b[0m]File di test generati,\n");
+	if(maxPoints==0)
+	{
+		printf("[\x1b[33mINFO\x1b[0m]il test richiedera' al piu' %lld secondi\n",(timePassed)/1000);
+	}
+	else
+	{
+		printf("[\x1b[33mINFO\x1b[0m]il test richiedera' %lld secondi\n",(timePassed)/1000);
+	}
 	
 	return 0;
 }

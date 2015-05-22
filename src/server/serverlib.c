@@ -949,6 +949,7 @@ void* waitingThread(void* arg)
 		usleep(useconds);
 		i++;
 		i=i%size;
+		i%=d;
 		/*
 		fprintf(stderr,"\b\b\b\b\u2591   ");
 		fflush(stdout);
