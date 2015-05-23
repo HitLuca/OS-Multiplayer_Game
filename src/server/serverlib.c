@@ -1060,11 +1060,11 @@ void rankCommand()
 	{
 		if(colorRun!=0)
 		{
-			if((float)(i+1)/2<=(float)clientNumber/3.0)
+			if((float)(i)<=(float)n/3.0)
 			{
 				printf(COLOR_GREEN);
 			}
-			else if((float)(i+1)/2<=(float)clientNumber*2.0/3.0)
+			else if((float)(i)<=(float)n*2.0/3.0)
 			{
 				printf(COLOR_YELLOW);
 			}
