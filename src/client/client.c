@@ -1,3 +1,9 @@
+//Autori
+//Simonetto Luca 166540
+//Federici Marco 165183
+//Progetto Sistemi Operativi 1 2015
+//Multiplayer Game
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>

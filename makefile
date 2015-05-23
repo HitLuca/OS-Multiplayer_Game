@@ -1,3 +1,9 @@
+#Autori
+#Simonetto Luca 166540
+#Federici Marco 165183
+#Progetto Sistemi Operativi 1 2015
+#Multiplayer Game
+
 #Elenco delle regole non corrispondenti ad un file fisico (per non aggiungere dipendenze alla regola)
 .PHONY: all default bin assets game_wrapper assets_wrapper test_wrapper game_dirs assets_dirs log_dir game_clean assets_clean clean objects revert
 
