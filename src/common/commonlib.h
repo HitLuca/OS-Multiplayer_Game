@@ -34,7 +34,7 @@ typedef struct {
 	int parameterCount;
 } Message;
 
-//Struct contenente le domande, diversa da quella lato server che contiene anche la risposta <--------------SERVE IN COMMONLIB??? (SERVERLIB MAYBE?)
+//Struct contenente le domande, diversa da quella lato server che contiene anche la risposta
 typedef struct {
 	char text[MAX_QUESTION_SIZE];
 	char id[MAX_QID_SIZE];

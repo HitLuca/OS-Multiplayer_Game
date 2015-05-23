@@ -268,12 +268,14 @@ void initializeClientData()
 //Aggiunta di un nuovo client a clientData, con il set di tutti i parametri
 void connectNewClient(int id,char* name,int fifoID)
 {
+	pthread_mutex_lock(&data);
 	clientData[id]=(ClientData*)malloc(sizeof(ClientData));
 	clientData[id]->name=(char*)malloc(sizeof(char)*(strlen(name)+1));
 	strcpy(clientData[id]->name,name);
 	clientData[id]->fifoID=fifoID;
 	clientData[id]->points=clientsMaxNumber-connectedClientsNumber;
 	connectedClientsNumber++;
+	pthread_mutex_unlock(&data);
 	sprintf(stringBuffer, "Ho accettato la richiesta di %s, e gli ho assegnato %d punti",clientData[id]->name,clientData[id]->points);
 	print(AUTH, stringBuffer);
 	sprintf(stringBuffer, "Rimangono %d posti liberi", clientsMaxNumber-connectedClientsNumber);
@@ -468,12 +470,14 @@ void BroadcastQuestion(){
 	strcat(newQuestionMessage,questions[currentQuestion].question->id);
 	strcat(newQuestionMessage,"|");
 	strcat(newQuestionMessage,questions[currentQuestion].question->text);
+	pthread_mutex_lock(&data);
 	for(i=0;i<clientsMaxNumber;i++){
 		if(clientData[i]!=NULL)
 		{
 			write(clientData[i]->fifoID,newQuestionMessage,strlen(newQuestionMessage)+1);
 		}	
 	}
+	pthread_mutex_unlock(&data);
 }
 
 //Chiamata quando si vuole far disconnettere forzatamente un client dal gioco (usando il comando kick)
@@ -498,12 +502,14 @@ void broadcastServerClosed()
 	int i;
 	char serverCloseMessage [MAX_MESSAGE_SIZE];
 	strcpy(serverCloseMessage,"D");
+	pthread_mutex_lock(&data);
 	for(i=0;i<clientsMaxNumber;i++){
 		if(clientData[i]!=NULL)
 		{
 			write(clientData[i]->fifoID,serverCloseMessage,strlen(serverCloseMessage)+1);
 		}	
 	}
+	pthread_mutex_unlock(&data);
 }
 
 //Parsing del comando inserito nella bash, contenente un opzionale argomento
@@ -604,6 +610,7 @@ void listCommand()
 	int i,j;
 	sprintf(stringBuffer, "Ci sono %d giocatori connessi su  un massimo di %d",connectedClientsNumber,clientsMaxNumber);
 	print(INFO, stringBuffer);
+	pthread_mutex_lock(&data);
 	if(connectedClientsNumber>0)
 	{
 		print(DEFAULT, "\n\tGiocatore\t\t\tPunteggio");
@@ -626,6 +633,7 @@ void listCommand()
 		}
 		print(DEFAULT, "");
 	}
+	pthread_mutex_unlock(&data);
 }
 
 //Invio di una domanda personalizzata ai client (con il comando question)
@@ -666,12 +674,14 @@ void broadcastConnection(int id,char* name)
 	strcpy(notification,"N|");
 	strcat(notification,message);
 	int i;
+	pthread_mutex_lock(&data);
 	for(i=0;i<clientsMaxNumber;i++){
 		if(clientData[i]!=NULL && id!=i)
 		{
 			write(clientData[i]->fifoID,notification,strlen(notification)+1);
 		}	
 	}
+	pthread_mutex_unlock(&data);
 }
 
 //Funzione per avvertire i client che un nuovo giocatore si è disconnesso
@@ -708,6 +718,7 @@ void endGame(ClientData* winner)
 	ClientData* best;
 	int maxIndex;
 	int printedBest=0;
+	pthread_mutex_lock(&data);
 	while(1)
 	{
 		best=NULL;
@@ -752,7 +763,7 @@ void endGame(ClientData* winner)
 			write(clientData[i]->fifoID,message,strlen(message)+1);
 		}	
 	}
-	
+	pthread_mutex_unlock(&data);
 	
 	print(GAME, "La partita e' terminata");
 	deallocResources();
@@ -769,32 +780,39 @@ void broadcastRank(ClientData* best)
 	strcat(notification," ");
 	strcat(notification,message);
 	int i;
+	pthread_mutex_lock(&data);
 	for(i=0;i<clientsMaxNumber;i++){
 		if(clientData[i]!=NULL)
 		{
 			write(clientData[i]->fifoID,notification,strlen(notification)+1);
 		}	
 	}
+	pthread_mutex_unlock(&data);
 }
 
 //Notifica ai client della fine del gioco
 void broadcastEndGame()
 {
 	int i;
+	pthread_mutex_lock(&data);
 	for(i=0;i<clientsMaxNumber;i++){
 		if(clientData[i]!=NULL)
 		{
 			write(clientData[i]->fifoID,"S",2);
 		}	
 	}
+	pthread_mutex_unlock(&data);
 }
 
 void notifyAll(char* message)
-{
+{	
+	sprintf(stringBuffer,"invio '%s' a tutti i giocatori",message);
+	print(INFO,stringBuffer);
 	char notification[MAX_MESSAGE_SIZE];
 	strcpy(notification,"N|");
 	strcat(notification,message);
 	int i;
+	pthread_mutex_lock(&data);
 	for(i=0;i<clientsMaxNumber;i++){
 		if(clientData[i]!=NULL)
 		{
@@ -803,6 +821,7 @@ void notifyAll(char* message)
 			print(INFO,stringBuffer);
 		}	
 	}
+	pthread_mutex_unlock(&data);
 }
 
 void notifyPlayers(char* message,char ** players,int playerNumber)
@@ -812,6 +831,7 @@ void notifyPlayers(char* message,char ** players,int playerNumber)
 	strcat(notification,message);
 	int i,j;
 	int notified;
+	pthread_mutex_lock(&data);
 	for(j=0;j<playerNumber;j++)
 	{
 		notified=0;
@@ -836,13 +856,16 @@ void notifyPlayers(char* message,char ** players,int playerNumber)
 			print(INFO,stringBuffer);
 		}
 	}
+	pthread_mutex_unlock(&data);
 }
 
 void kickAll()
 {
 	int i;
+	print(INFO,"Espello tutti i giocatori");
 	char kickMessage [MAX_MESSAGE_SIZE];
 	strcpy(kickMessage ,"K");
+	pthread_mutex_lock(&data);
 	for(i=0;i<clientsMaxNumber;i++){
 		if(clientData[i]!=NULL)
 		{
@@ -853,6 +876,7 @@ void kickAll()
 			
 		}	
 	}
+	pthread_mutex_unlock(&data);
 	
 }
 
@@ -860,6 +884,7 @@ void kickPlayers(char ** players,int playerNumber)
 {
 	int i,j;
 	int kicked;
+	pthread_mutex_lock(&data);
 	for(j=0;j<playerNumber;j++)
 	{
 		kicked=0;
@@ -884,6 +909,7 @@ void kickPlayers(char ** players,int playerNumber)
 			print(INFO,stringBuffer);
 		}
 	}
+	pthread_mutex_unlock(&data);
 }
 
 void print(tags tag, char* message)
@@ -933,7 +959,6 @@ void* waitingThread(void* arg)
 {
 	useconds_t useconds=90000L;
 	printf("running test...\n\n");
-	//printf("            _____                      _   _              _ _                  \n           |  __ \\                    | | | |            | (_)                 \n           | |__) _ __ ___   __ _  ___| |_| |_ ___     __| |_                  \n           |  ___| '__/ _ \\ / _` |/ _ | __| __/ _ \\   / _` | |                 \n           | |   | | | (_) | (_| |  __| |_| || (_) | | (_| | |                 \n           |_|   |_|  \\___/ \\__, |\\___|\\__|\\__\\___/   \\__,_|_|                 \n   _____ _     _             __/ |    ____                       _   _       _ \n  / ____(_)   | |           |___(_)  / __ \\                     | | (_)     (_)\n | (___  _ ___| |_ ___ _ __ ___  _  | |  | |_ __   ___ _ __ __ _| |_ ___   ___ \n  \\___ \\| / __| __/ _ | '_ ` _ \\| | | |  | | '_ \\ / _ | '__/ _` | __| \\ \\ / | |\n  ____) | \\__ | ||  __| | | | | | | | |__| | |_) |  __| | | (_| | |_| |\\ V /| |\n |_____/|_|___/\\__\\___|_| |_| |_|_|  \\____/| .__/ \\___|_|  \\__,_|\\__|_| \\_/ |_|\n                                           | |                                 \n                                           |_|                                 \n");
 	int i=0;
 	int j=0;
 	int size=50;
@@ -943,12 +968,7 @@ void* waitingThread(void* arg)
 	char c2[]="\u2592";
 	char c3[]="\u2591";
 	char c4[]="\u2588";
-	
-	/*
-	char c1[]="\x1b[30m\u2588\x1b[0m";
-	char c2[]="\x1b[37m\u2588\x1b[0m";
-	char c3[]="\x1b[36m\u2588\x1b[0m";
-	char c4[]="\x1b[34m\u2588\x1b[0m";*/
+
 	
 	while(1)
 	{
@@ -980,31 +1000,12 @@ void* waitingThread(void* arg)
 		i++;
 		i=i%size;
 		i%=d;
-		/*
-		fprintf(stderr,"\b\b\b\b\u2591   ");
-		fflush(stdout);
-		usleep(useconds);
-		fprintf(stderr,"\b\b\b\b\u2592   ");
-		fflush(stdout);
-		usleep(useconds);
-		fprintf(stderr,"\b\b\b\b\u2593   ");
-		fflush(stdout);
-		usleep(useconds);
-		fprintf(stderr,"\b\b\b\b\u2588   ");
-		fflush(stdout);
-		usleep(useconds);
-		i++;
-		if(i>5)
-		{
-			i=0;
-			fprintf(stderr,"\b\b\b\u2588    ",219);
-			fflush(stdout);
-		}*/
 	}
 }
 
 void rankCommand()
 {
+	print(INFO,"Visualizzo la classifica");
 	ClientData** ranking=(ClientData**)malloc(sizeof(ClientData*)*clientsMaxNumber);
 	int* done=(int*)malloc(sizeof(int)*clientsMaxNumber);
 	int i;
@@ -1016,6 +1017,7 @@ void rankCommand()
 	ClientData* best;
 	int maxIndex;
 	int printedBest=0;
+	pthread_mutex_lock(&data);
 	while(1)
 	{
 		best=NULL;
@@ -1093,5 +1095,6 @@ void rankCommand()
 		}
 		printf("\n");
 	}
+	pthread_mutex_unlock(&data);
 	print(DEFAULT,"");
 }

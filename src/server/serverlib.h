@@ -48,6 +48,7 @@ FILE* testFile;
 FILE* logFile;
 pthread_t bash;
 pthread_mutex_t printMutex;
+pthread_mutex_t data;
 int waiting;
 
 //Funzioni lato server
