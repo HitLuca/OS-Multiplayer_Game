@@ -15,7 +15,7 @@
 void handler ()
 {  
 	deallocResources();
-	print(DEFAULT, "\n");
+	print(DEFAULT, "");
 	if(connected==1)
 	{
 		char disconnectMessage[MAX_MESSAGE_SIZE];
@@ -37,11 +37,11 @@ void* userInput(void* arg)
 	{
 		if(newQuestion==1)
 		{
-			sprintf(stringBuffer, "La domanda e' %s\n", currentQuestion.text);
+			sprintf(stringBuffer, "La domanda e' %s", currentQuestion.text);
 			print( GAME, stringBuffer);
 			newQuestion=0;
 		}
-		print( DEFAULT, "La tua risposta>");
+		printf("La tua risposta>");
 		waitingForUserInput=1;
 		getline(&input,&size,stdin);
 		strchr(input,'\n')[0]='\0';
@@ -80,16 +80,16 @@ void* testInput(void* arg)
 //Funzione di validazione del nome scelto dal giocatore
 int validateUsername(char* username)
 {
-	sprintf(stringBuffer, "Hai scelto %s\n",username);
+	sprintf(stringBuffer, "Hai scelto %s",username);
 	print( INFO, stringBuffer);
 	if(strlen(username)<MIN_USERNAME_LENGHT)
 	{
-		print( ERROR, "Username troppo corto\n");
+		print( ERROR, "Username troppo corto");
 		return -1;
 	}
 	else if(strlen(username)>MAX_USERNAME_LENGHT)
 	{
-		print( ERROR, "Username troppo lungo\n");
+		print( ERROR, "Username troppo lungo");
 		return -1;
 	}
 	else
@@ -99,7 +99,7 @@ int validateUsername(char* username)
 		{
 			if(!isalnum(username[i]))
 			{
-				sprintf(stringBuffer, "Carattere %c non valido\n",username[i]);
+				sprintf(stringBuffer, "Carattere %c non valido",username[i]);
 				print( DEFAULT, stringBuffer);
 				return -1;
 			}
@@ -191,6 +191,75 @@ void deallocResources(){
 	}
 }
 
+void printRanking(char** ranking,int size)
+{
+	int i,j;
+	print(GAME,"La partita si e' conclusa");
+	if(strcmp(ranking[0],username)==0)
+	{
+		print(GAME,"Hai vinto!");
+	}
+	else
+	{
+		print(GAME,"Hai perso!");
+	}
+	fprintf(logFile,"\n\tGIOCATORE\t\t\tPUNTI\n");
+	fprintf(logFile,"    -------------------------------------------\n");
+	for(i=0;i<size;i+=2)
+	{
+		fprintf(logFile,"\t%s",ranking[i]);
+		for(j=0;j<=4*8;j+=8)
+		{
+			if(strlen(ranking[i])<j)
+			{
+				fprintf(logFile,"\t");
+			}
+		}
+		fprintf(logFile,"%s\n",ranking[i+1]);
+	}
+	fprintf(logFile,"\n");
+	if(testRun==0)
+	{
+		int max=atoi(ranking[1]);
+		int clientNumber=size/2;
+		int terminalSize=40;
+		int p;
+		int d;
+		char block[]="\u2588";
+		for(i=0;i<size;i+=2)
+		{
+			if(i/2<=clientNumber/3)
+			{
+				printf(COLOR_GREEN);
+			}
+			else if(i/2<=clientNumber*2/3)
+			{
+				printf(COLOR_YELLOW);
+			}
+			else
+			{
+				printf(COLOR_RED);
+			}
+			printf("\t%s",ranking[i]);
+			
+			p=atoi(ranking[i+1]);
+			d=((int)((double)p/(double)max)*(double)terminalSize);
+			for(j=0;j<=2*8;j+=8)
+			{
+				if(strlen(ranking[i])<j)
+				{
+					printf("\t");
+				}
+			}
+			for(j=0;j<d;j++)
+			{
+				printf("%s",block);
+			}
+			printf(COLOR_RESET"\n");
+		}
+	}
+}
+
 void print(tags tag,char* message)
 {
 	if(testRun==0)
@@ -204,3 +273,5 @@ void print(tags tag,char* message)
 		fflush(logFile);
 	}
 }
+
+

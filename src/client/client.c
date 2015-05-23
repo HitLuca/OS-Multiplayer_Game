@@ -91,7 +91,7 @@ int main(int argc, char** argv) //client --test --color
 	char* testFileName=(char*)malloc(sizeof(char)*10);
 	strcpy(testFileName,argv[1]);
 	
-	char* username=(char*)malloc(sizeof(char)*MAX_USERNAME_LENGHT);
+	username=(char*)malloc(sizeof(char)*MAX_USERNAME_LENGHT);
 	size_t size=MAX_USERNAME_LENGHT;
 	
 	if(testRun==0) //se non è una run di test chiedo di inserire un username
@@ -99,7 +99,7 @@ int main(int argc, char** argv) //client --test --color
 		int correctUsername=-1;
 		while(correctUsername==-1)
 		{
-			print(DEFAULT, "Inserisci il tuo username> ");
+			printf("Inserisci il tuo username> ");
 			getline(&username,&size,stdin);
 			strchr(username,'\n')[0]='\0';
 			fflush(stdin);
@@ -116,7 +116,7 @@ int main(int argc, char** argv) //client --test --color
 		testFile = fopen(testFilePath,"r");
 		if(testFile==NULL)
 		{
-			print(ERROR, "Errore apertura file di test\n\n");
+			print(ERROR, "Errore apertura file di test\n");
 			return 0;
 		}
 		int size = 20;
@@ -190,7 +190,7 @@ int main(int argc, char** argv) //client --test --color
 				return 0;
 			}
 			
-			print( INFO, "Connessione Riuscita\n");
+			print( INFO, "Connessione Riuscita");
 			
 			//inizializzo le variabili
 			connected=1;
@@ -199,7 +199,7 @@ int main(int argc, char** argv) //client --test --color
 			initializeClientData(answer);
 			initializeQuestion(answer);
 			
-			sprintf(stringBuffer, "Il server mi ha assegnato %s punti\n",clientData->points);
+			sprintf(stringBuffer, "Il server mi ha assegnato %s punti",clientData->points);
 			print( INFO, stringBuffer);
 
 			//Componenti del thread bash
@@ -239,33 +239,33 @@ int main(int argc, char** argv) //client --test --color
 						
 						if(strchr(message->parameters[0],'K')!=NULL) //messaggio di kick
 						{
-							print( AUTH, "Espulso dal server\n");
+							print( AUTH, "Espulso dal server");
 							deallocResources();
 							return 0;
 						}
 						else if(strchr(message->parameters[0],'D')!=NULL) //server chiuso
 						{
-							print( ERROR, "Il server e' stato chiuso\n");
+							print( ERROR, "Il server e' stato chiuso");
 							deallocResources();
 							return 0;
 						}
 						else if(strchr(message->parameters[0],'W')!=NULL) //risposta sbagliata
 						{
-							print( GAME, "Risposta Sbagliata!\n");
-							sprintf(stringBuffer, "Ora hai %s punti\n",message->parameters[2]);
+							print( GAME, "Risposta Sbagliata!");
+							sprintf(stringBuffer, "Ora hai %s punti",message->parameters[2]);
 							print( INFO, stringBuffer);
 							pthread_mutex_unlock(&mutex);
 						}
 						else if(strchr(message->parameters[0],'C')!=NULL) //risposta giusta
 						{
 							print( GAME, "Risposta Corretta!\n");
-							sprintf(stringBuffer, "Ora hai %s punti\n",message->parameters[2]);
+							sprintf(stringBuffer, "Ora hai %s punti",message->parameters[2]);
 							print( INFO, stringBuffer);
 						}
 						else if(strchr(message->parameters[0],'T')!=NULL) //risposta giusta ma in ritardo
 						{
-							print( GAME, "Qualcuno ha risposto correttamente prima di te!\n");
-							sprintf(stringBuffer, "Ora hai %s punti\n",message->parameters[2]);
+							print( GAME, "Qualcuno ha risposto correttamente prima di te!");
+							sprintf(stringBuffer, "Ora hai %s punti",message->parameters[2]);
 							print( INFO, stringBuffer);
 						}
 						else if(strchr(message->parameters[0],'Q')!=NULL) //nuova domanda
@@ -276,8 +276,9 @@ int main(int argc, char** argv) //client --test --color
 								waitingForUserInput=0;
 								if (pthread_cancel(bash)!=0)//lo chiudo
 								{
-									print( ERROR, "Impossibile terminare il thread bash\n");
+									print( ERROR, "Impossibile terminare il thread bash");
 								}
+								
 								//e lo ricreo
 								pthread_create (&bash, NULL, &userInput, &arg);
 							}
@@ -288,30 +289,32 @@ int main(int argc, char** argv) //client --test --color
 						}
 						else if(strchr(message->parameters[0],'N')!=NULL) //messaggio di notifica
 						{
-							sprintf(stringBuffer, "%s\n",message->parameters[1]);
+							sprintf(stringBuffer, "%s",message->parameters[1]);
 							print( INFO, stringBuffer);
 							if(waitingForUserInput==1 && endGame==0 && testRun==0) //se il thread è bloccato in attesa di una risposta dall utente
 							{
 								waitingForUserInput=0;
 								if (pthread_cancel(bash)!=0)//lo chiudo
 								{
-									print( ERROR, "Impossibile terminare il thread bash\n");
+									print( ERROR, "Impossibile terminare il thread bash");
 								}
+								
 								//e lo ricreo
 								pthread_create (&bash, NULL, &userInput, &arg);
 							}
 						}
 						else if(strchr(message->parameters[0],'R')!=NULL) //fine partita e classifica
 						{
-							print( GAME, "La partita si e' conclusa\nNome Punteggio\n----------------\n");
+							printRanking(&(message->parameters[1]),(message->parameterCount)-2);
+							/*print( GAME, "La partita si e' conclusa\nNome Punteggio\n----------------\n");
 							endGame=1;
 							sprintf(stringBuffer, "%s\n",message->parameters[1]);
-							print( DEFAULT, stringBuffer);
+							print( DEFAULT, stringBuffer);*/
 							if(testRun==0)
 							{
 								if (pthread_cancel(bash)!=0) //chiudo il thread bash
 								{
-									print( ERROR, "Impossibile terminare il thread bash :(\n");
+									print( ERROR, "Impossibile terminare il thread bash");
 								}
 							}
 							deallocResources();	
@@ -320,10 +323,10 @@ int main(int argc, char** argv) //client --test --color
 						}
 						else
 						{
-							sprintf(stringBuffer, "Messaggio sconosciuto ricevuto: %s \n",message->parameters[0]);
+							sprintf(stringBuffer, "Messaggio sconosciuto ricevuto: %s ",message->parameters[0]);
 							print( ERROR, stringBuffer);
-							deallocResources();
-							return 0;
+							//deallocResources();
+							//return 0;
 						}
 					
 					}

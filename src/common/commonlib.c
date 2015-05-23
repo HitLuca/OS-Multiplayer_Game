@@ -10,6 +10,8 @@
 
 #include "commonlib.h"
 
+
+
 //Funzione di parsing dei messaggi Server->Client e Client->Server
 Message* parseMessage(char *message)
 {
@@ -144,6 +146,7 @@ void printScreen(int color, tags tag, char* message)
 			}
 		}
 	}
+	printf("\n");
 }
 
 //Print su file
@@ -177,4 +180,5 @@ void printFile(FILE* file, tags tag, char* message)
 			break;
 		}
 	}
+	fprintf(file,"\n");
 }

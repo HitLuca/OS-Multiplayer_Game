@@ -31,6 +31,7 @@ FILE* testFile;
 FILE* logFile;
 int testRun;
 int colorRun;
+char* username;
 
 //Funzioni lato client
 void* userInput(void* arg);
@@ -44,5 +45,6 @@ void setNewQuestion(Message *message);
 void deallocResources();
 void handler();
 void* testInput(void* arg);
+void printRanking(char** ranking,int size);
 
 #endif

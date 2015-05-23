@@ -99,7 +99,7 @@ int main(int argc,char **argv) //server --max --win --test --color
 		logFile=fopen(logFilePath,"w");
 		if(logFile==NULL)
 		{
-			print(ERROR, "Errore creazione file di Log\n\n");
+			print(ERROR, "Errore creazione file di Log\n");
 			return 0;
 		}
 		
@@ -112,7 +112,7 @@ int main(int argc,char **argv) //server --max --win --test --color
 			testFile = fopen(testFilePath,"r");
 			if(testFile==NULL)
 			{
-				print(ERROR, "Errore apertura file di test\n\n");
+				print(ERROR, "Errore apertura file di test\n");
 				return 0;
 			}
 		}
@@ -181,7 +181,7 @@ int main(int argc,char **argv) //server --max --win --test --color
 				Message* answer = messages[i];
 				i++;
 
-				sprintf(stringBuffer, "%s ha risposto %s alla domanda %s\n", clientData[atoi(answer->parameters[0])]->name, answer->parameters[2],  questions[atoi(answer->parameters[1])].question->text);
+				sprintf(stringBuffer, "%s ha risposto %s alla domanda %s", clientData[atoi(answer->parameters[0])]->name, answer->parameters[2],  questions[atoi(answer->parameters[1])].question->text);
 				print(GAME, stringBuffer);
 				
 				int result = checkAnswer(answer);				

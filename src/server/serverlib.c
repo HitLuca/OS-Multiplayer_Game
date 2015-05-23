@@ -44,7 +44,7 @@ void* authorizationThread(void* arg)
 				strcpy(fifoPath,CLIENT_MESSAGE_FIFO);
 				strcat(fifoPath,message->parameters[1]);
 				
-				sprintf(stringBuffer, "%s ha effettuato una richiesta di connessione\n",message->parameters[2]);
+				sprintf(stringBuffer, "%s ha effettuato una richiesta di connessione",message->parameters[2]);
 				print(AUTH, stringBuffer);
 				
 				//apro la fifo del client
@@ -60,7 +60,7 @@ void* authorizationThread(void* arg)
 				}
 				else
 				{
-					print(AUTH,"La richesta e' stata rifiutata\n");
+					print(AUTH,"La richesta e' stata rifiutata");
 					answer=authRejectMessage(id);
 				}
 				write(clientMessageFIFO,answer, strlen(answer)+1);
@@ -68,7 +68,7 @@ void* authorizationThread(void* arg)
 			if(strchr(message->parameters[0],'Q')!=NULL) //notifica di disconnessione
 			{	
 				int id=atoi(message->parameters[1]);
-				sprintf(stringBuffer, "%s si e' disconnesso\n",clientData[id]->name);
+				sprintf(stringBuffer, "%s si e' disconnesso",clientData[id]->name);
 				print(AUTH, stringBuffer);
 				broadcastDisonnection(id);		
 				disconnectClient(id);		
@@ -93,13 +93,13 @@ void* bashThread(void*arg)
 		Command* command=parseCommand(rawCommand);
 		if (strcmp(command->operation, "help")==0) //Comando help
 		{
-			print(INFO, "Lista comandi utente :\n");
-			print(DEFAULT, "\thelp : \n\t\tRichiama questo messaggio di aiuto\n\n");
-			print(DEFAULT, "\tkick <giocatore1> <giocatore2> ... all : \n\t\tEspelle il/i giocatori specificati dalla partita\n\n");
-			print(DEFAULT, "\tquestion <domanda> <risposta> : \n\t\tInvia la nuova domanda a tutti gli utenti\n\n");
-			print(DEFAULT, "\tlist : \n\t\tStampa la lista degli utenti connessi\n\n");
+			print(INFO, "Lista comandi utente :");
+			print(DEFAULT, "\thelp : \n\t\tRichiama questo messaggio di aiuto\n");
+			print(DEFAULT, "\tkick <giocatore1> <giocatore2> ... all : \n\t\tEspelle il/i giocatori specificati dalla partita\n");
+			print(DEFAULT, "\tquestion <domanda> <risposta> : \n\t\tInvia la nuova domanda a tutti gli utenti\n");
+			print(DEFAULT, "\tlist : \n\t\tStampa la lista degli utenti connessi\n");
 			print(DEFAULT, "\tclear : \n\t\tPulisce la schermata corrente\n\n");
-			print(DEFAULT, "\tnotify : <messaggio> <giocatore1> <giocatore2> ... all :\n\t\tmanda un messaggio di notifica al/ai giocatore/i speficicati\n\n");
+			print(DEFAULT, "\tnotify : <messaggio> <giocatore1> <giocatore2> ... all :\n\t\tmanda un messaggio di notifica al/ai giocatore/i speficicati\n");
 		}
 		else if (strcmp(command->operation, "clear")==0) //Comando clear
 		{
@@ -109,7 +109,7 @@ void* bashThread(void*arg)
 		{
 			if(command->parameterCount<1)
 			{
-				sprintf(stringBuffer, "numero di parametri errato in %s: almeno 1 parametro necessario\n",command->operation);
+				sprintf(stringBuffer, "numero di parametri errato in %s: almeno 1 parametro necessario",command->operation);
 				print(ERROR, stringBuffer);
 				
 			}
@@ -123,7 +123,7 @@ void* bashThread(void*arg)
 					}
 					else
 					{
-						sprintf(stringBuffer, "non e' possibile aggiungere altri target oltre ad 'all'\n");
+						sprintf(stringBuffer, "non e' possibile aggiungere altri target oltre ad 'all'");
 						print(ERROR, stringBuffer);
 					}
 				}
@@ -141,7 +141,7 @@ void* bashThread(void*arg)
 			}
 			else
 			{
-				sprintf(stringBuffer, "numero di parametri errato in %s: 0 parametri necessari\n",command->operation);
+				sprintf(stringBuffer, "numero di parametri errato in %s: 0 parametri necessari",command->operation);
 				print(ERROR, stringBuffer);
 			}
 		}
@@ -153,7 +153,7 @@ void* bashThread(void*arg)
 			}
 			else
 			{
-				sprintf(stringBuffer, "numero di parametri errato in %s: 2 parametri necessari\n",command->operation);
+				sprintf(stringBuffer, "numero di parametri errato in %s: 2 parametri necessari",command->operation);
 				print(ERROR, stringBuffer);
 			}
 		}
@@ -161,7 +161,7 @@ void* bashThread(void*arg)
 		{
 			if(command->parameterCount<2)
 			{
-				sprintf(stringBuffer, "numero di parametri errato in %s: almeno 2 parametri necessari\n",command->operation);
+				sprintf(stringBuffer, "numero di parametri errato in %s: almeno 2 parametri necessari",command->operation);
 				print(ERROR, stringBuffer);
 			}
 			else
@@ -174,7 +174,7 @@ void* bashThread(void*arg)
 					}
 					else
 					{
-						sprintf(stringBuffer, "non e' possibile aggiungere altri target oltre ad 'all'\n");
+						sprintf(stringBuffer, "non e' possibile aggiungere altri target oltre ad 'all'");
 						print(ERROR, stringBuffer);
 					}
 				}
@@ -188,7 +188,7 @@ void* bashThread(void*arg)
 		{
 			if(strlen(command->operation)!=0)
 			{
-				sprintf(stringBuffer, "%s :Comando non riconosciuto\n",command->operation);
+				sprintf(stringBuffer, "%s :Comando non riconosciuto",command->operation);
 				print(ERROR, stringBuffer);
 			}
 			else
@@ -261,9 +261,9 @@ void connectNewClient(int id,char* name,int fifoID)
 	clientData[id]->fifoID=fifoID;
 	clientData[id]->points=clientsMaxNumber-connectedClientsNumber;
 	connectedClientsNumber++;
-	sprintf(stringBuffer, "Ho accettato la richiesta di %s, e gli ho assegnato %d punti\n",clientData[id]->name,clientData[id]->points);
+	sprintf(stringBuffer, "Ho accettato la richiesta di %s, e gli ho assegnato %d punti",clientData[id]->name,clientData[id]->points);
 	print(AUTH, stringBuffer);
-	sprintf(stringBuffer, "Rimangono %d posti liberi\n", clientsMaxNumber-connectedClientsNumber);
+	sprintf(stringBuffer, "Rimangono %d posti liberi", clientsMaxNumber-connectedClientsNumber);
 	print(INFO, stringBuffer);
 }
 
@@ -443,7 +443,7 @@ void GenerateNewQuestion(){
 	
 	questions[currentQuestion].question=newQuestion;
 	questions[currentQuestion].answer=answs;
-	sprintf(stringBuffer, "La nuova domanda e' %s, ha risposta %s\n",newText,answs);
+	sprintf(stringBuffer, "La nuova domanda e' %s, ha risposta %s",newText,answs);
 	print(GAME, stringBuffer);
 }
 
@@ -588,20 +588,30 @@ void kick(int id)
 void listCommand()
 {
 	
-	int i;
-	sprintf(stringBuffer, "Ci sono %d giocatori connessi su  un massimo di %d\n",connectedClientsNumber,clientsMaxNumber);
+	int i,j;
+	sprintf(stringBuffer, "Ci sono %d giocatori connessi su  un massimo di %d",connectedClientsNumber,clientsMaxNumber);
 	print(INFO, stringBuffer);
 	if(connectedClientsNumber>0)
 	{
-		print(DEFAULT, "\n\tGiocatore\t\t\t\tPunteggio\n");
+		print(DEFAULT, "\n\tGiocatore\t\t\tPunteggio");
 		for(i=0;i<clientsMaxNumber;i++){
 			if(clientData[i]!=NULL)
 			{
-				sprintf(stringBuffer, "\t%s\t\t\t\t\t%d\n",clientData[i]->name,clientData[i]->points);
+				sprintf(stringBuffer, "\t%s",clientData[i]->name);
+				for(j=0;j<=4*8;j+=8)
+				{
+					if(strlen(clientData[i]->name)<j)
+					{
+						strcat(stringBuffer,"\t");
+					}
+				}
+				char pointss[20];
+				sprintf(pointss,"%d",clientData[i]->points);
+				strcat(stringBuffer,pointss);
 				print(DEFAULT, stringBuffer);
 			}	
 		}
-		print(DEFAULT, "\n");
+		print(DEFAULT, "");
 	}
 }
 
@@ -628,7 +638,7 @@ void sendCustomizedQuestion(char* question,char* answer)
 	strcpy(newQuestion->text,question);
 	questions[currentQuestion].question=newQuestion;
 	questions[currentQuestion].answer=answ;
-	sprintf(stringBuffer, "La nuova domanda e' %s, ha risposta %s\n",question,answ);
+	sprintf(stringBuffer, "La nuova domanda e' %s, ha risposta %s",question,answ);
 	print(GAME, stringBuffer);
 	
 	BroadcastQuestion();
@@ -671,7 +681,7 @@ void broadcastDisonnection(int id)
 //Terminazione del gioco, unlink delle FIFO e liberazione delle risorse
 void endGame(ClientData* winner)
 {	
-	sprintf(stringBuffer, "Il giocatore %s ha vinto\n", winner->name);
+	sprintf(stringBuffer, "Il giocatore %s ha vinto", winner->name);
 	print(GAME, stringBuffer);
 
 	ClientData** ranking=(ClientData**)malloc(sizeof(ClientData*)*clientsMaxNumber);
@@ -717,11 +727,11 @@ void endGame(ClientData* winner)
 	for(i=0;i<j;i++)
 	{
 		strcat(message,ranking[i]->name);
-		strcat(message," ");
+		strcat(message,"|");
 		char points[18];
 		sprintf(points,"%d",ranking[i]->points);
 		strcat(message,points);
-		strcat(message,"\n");
+		strcat(message,"|");
 	}
 	for(i=0;i<clientsMaxNumber;i++){
 		if(clientData[i]!=NULL)
@@ -731,7 +741,7 @@ void endGame(ClientData* winner)
 	}
 	
 	
-	print(GAME, "La partita e' terminata\n\n");
+	print(GAME, "La partita e' terminata");
 	deallocResources();
 }
 
@@ -776,7 +786,7 @@ void notifyAll(char* message)
 		if(clientData[i]!=NULL)
 		{
 			write(clientData[i]->fifoID,notification,strlen(notification)+1);
-			sprintf(stringBuffer,"Il messaggio '%s' e' stato inviato al giocatore %s\n",message,clientData[i]->name);
+			sprintf(stringBuffer,"Il messaggio '%s' e' stato inviato al giocatore %s",message,clientData[i]->name);
 			print(INFO,stringBuffer);
 		}	
 	}
@@ -804,12 +814,12 @@ void notifyPlayers(char* message,char ** players,int playerNumber)
 		}
 		if(notified==0)
 		{
-			sprintf(stringBuffer,"Il giocatore %s non esiste\n",players[j]);
+			sprintf(stringBuffer,"Il giocatore %s non esiste",players[j]);
 			print(ERROR,stringBuffer);
 		}
 		else
 		{
-			sprintf(stringBuffer,"Il messaggio '%s' e' stato inviato al giocatore %s\n",message,players[j]);
+			sprintf(stringBuffer,"Il messaggio '%s' e' stato inviato al giocatore %s",message,players[j]);
 			print(INFO,stringBuffer);
 		}
 	}
@@ -824,7 +834,7 @@ void kickAll()
 		if(clientData[i]!=NULL)
 		{
 			write(clientData[i]->fifoID,kickMessage ,strlen(kickMessage)+1);
-			sprintf(stringBuffer,"Il giocatore %s e' stato espulso\n",clientData[i]->name);
+			sprintf(stringBuffer,"Il giocatore %s e' stato espulso",clientData[i]->name);
 			print(INFO,stringBuffer);
 			disconnectClient(i);
 			
@@ -852,12 +862,12 @@ void kickPlayers(char ** players,int playerNumber)
 		}
 		if(kicked==0)
 		{
-			sprintf(stringBuffer,"Il giocatore %s non esiste\n",players[j]);
+			sprintf(stringBuffer,"Il giocatore %s non esiste",players[j]);
 			print(ERROR,stringBuffer);
 		}
 		else
 		{
-			sprintf(stringBuffer,"Il giocatore '%s' e' stato espulso\n",players[j]);
+			sprintf(stringBuffer,"Il giocatore '%s' e' stato espulso",players[j]);
 			print(INFO,stringBuffer);
 		}
 	}
@@ -903,7 +913,8 @@ void deallocResources()
 void* waitingThread(void* arg)
 {
 	useconds_t useconds=90000L;
-	fprintf(stderr,"running test...\n\n");
+	printf("running test...\n\n");
+	//printf("            _____                      _   _              _ _                  \n           |  __ \\                    | | | |            | (_)                 \n           | |__) _ __ ___   __ _  ___| |_| |_ ___     __| |_                  \n           |  ___| '__/ _ \\ / _` |/ _ | __| __/ _ \\   / _` | |                 \n           | |   | | | (_) | (_| |  __| |_| || (_) | | (_| | |                 \n           |_|   |_|  \\___/ \\__, |\\___|\\__|\\__\\___/   \\__,_|_|                 \n   _____ _     _             __/ |    ____                       _   _       _ \n  / ____(_)   | |           |___(_)  / __ \\                     | | (_)     (_)\n | (___  _ ___| |_ ___ _ __ ___  _  | |  | |_ __   ___ _ __ __ _| |_ ___   ___ \n  \\___ \\| / __| __/ _ | '_ ` _ \\| | | |  | | '_ \\ / _ | '__/ _` | __| \\ \\ / | |\n  ____) | \\__ | ||  __| | | | | | | | |__| | |_) |  __| | | (_| | |_| |\\ V /| |\n |_____/|_|___/\\__\\___|_| |_| |_|_|  \\____/| .__/ \\___|_|  \\__,_|\\__|_| \\_/ |_|\n                                           | |                                 \n                                           |_|                                 \n");
 	int i=0;
 	int j=0;
 	int size=50;
