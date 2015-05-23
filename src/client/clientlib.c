@@ -14,7 +14,6 @@
 //{Q|idClient}
 void handler ()
 {  
-	deallocResources();
 	print(DEFAULT, "");
 	if(connected==1)
 	{
@@ -23,6 +22,7 @@ void handler ()
 		strcat(disconnectMessage,clientData->id);
 		write(serverAuthFIFO,disconnectMessage,strlen(disconnectMessage)+1);
 	}
+	deallocResources();
 	exit(0);
 }
 
@@ -179,8 +179,11 @@ void setNewQuestion(Message *message)
 
 //Deallocazione delle risorse con unlink delle FIFO client
 void deallocResources(){
-	close(inMessageFIFO);
-	unlink(messageFIFOName);
+	if (inMessageFIFO!=NULL)
+	{
+		close(inMessageFIFO);
+		unlink(messageFIFOName);
+	}
 	if(testFile!=NULL)
 	{
 		fclose(testFile);

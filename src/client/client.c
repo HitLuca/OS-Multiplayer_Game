@@ -20,7 +20,8 @@ int main(int argc, char** argv) //client --test --color
 	sigaction (SIGABRT, &sa, NULL);
 	sigaction (SIGQUIT, &sa, NULL);
 	sigaction (SIGINT, &sa, NULL);
-
+	sigaction (SIGSEGV, &sa, NULL);
+	
 	connected=0;
 	testRun=0;
 	

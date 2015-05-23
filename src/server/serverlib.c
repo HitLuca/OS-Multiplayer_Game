@@ -907,12 +907,16 @@ void deallocResources()
 {
 	printf("\n");
 	
-	close(serverAuthFIFO);
-	unlink(SERVER_AUTHORIZATION_FIFO);
-	
-	close(serverAnswerFIFO);
-	unlink(SERVER_ANSWER_FIFO);
-
+	if (serverAuthFIFO!=NULL)
+	{
+		close(serverAuthFIFO);
+		unlink(SERVER_AUTHORIZATION_FIFO);
+	}
+	if (serverAnswerFIFO!=NULL)
+	{
+		close(serverAnswerFIFO);
+		unlink(SERVER_ANSWER_FIFO);
+	}
 
 	if(logFile!=NULL)
 	{

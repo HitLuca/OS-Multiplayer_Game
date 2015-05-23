@@ -313,17 +313,29 @@ testGenerator.o:
 
 #Cancella i files oggetto nella cartella bin e bin/game
 game_clean:
-	rm $(GAME_BIN)/*.o
-	rm $(BIN)/*.o
+	rm -rf $(GAME_BIN)/*.o
+	rm -rf $(BIN)/*.o
 
 #Cancella i files oggetto nella cartella bin/test
 assets_clean:
-	rm $(TEST_BIN)/*.o
+	rm -rf $(TEST_BIN)/*.o
 
 #Chiama i clean
 clean: 
+	@echo $(NOTIFY_STRING) Avvio pulizia
 	@make game_clean 
 	@make assets_clean
+	@make log_clean
+	@make delete_assets
+	@echo $(NOTIFY_STRING) Fine pulizia
+
+log_clean:
+	rm -rf log/gcc.log
+	rm -rf log/game_build.log
+	rm -rf log/intensive_assets_build.log
+	rm -rf log/intensive_test_build.log
+	rm -rf log/server/*
+	rm -rf log/client/*
 
 #Cancella gli assets client e server
 delete_assets:
@@ -339,6 +351,6 @@ check_logs:
 	rm -rf log/gcc.log; \
 	fi
 
-#Non penso serva più
-#objects: game_dirs $(GAME_OBJECTS)
-#@echo $(NOTIFY_STRING) Fine
+objects: log_dir game_dirs $(GAME_OBJECTS)
+	@make check_logs
+	@echo $(NOTIFY_STRING) Fine

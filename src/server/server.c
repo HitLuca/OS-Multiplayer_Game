@@ -21,6 +21,7 @@ int main(int argc,char **argv) //server --max --win --test --color
 	sigaction (SIGQUIT, &sa, NULL);
 	sigaction (SIGINT, &sa, NULL);
 	sigaction (SIGSEGV, &sa, NULL);
+	
 	//Check se il server è gia avviato
 	if (mkfifo(SERVER_AUTHORIZATION_FIFO,FILE_MODE)!=0)
 	{

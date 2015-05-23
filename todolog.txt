@@ -6,13 +6,6 @@ testing
 scrivere la relazione
 fare gli schemi della relazione 
 
-
-
-
-
-
-
-
 Marco
 ------2)reimplementare la funzione di classifica
 ------3)aggiungere il comando che visualizza la classifica sul server
