@@ -100,6 +100,7 @@ void* bashThread(void*arg)
 			print(DEFAULT, "\tlist : \n\t\tStampa la lista degli utenti connessi\n");
 			print(DEFAULT, "\tclear : \n\t\tPulisce la schermata corrente\n\n");
 			print(DEFAULT, "\tnotify : <messaggio> <giocatore1> <giocatore2> ... all :\n\t\tmanda un messaggio di notifica al/ai giocatore/i speficicati\n");
+			print(DEFAULT, "\trank : \n\t\tVisualizza la classifica attuale\n");
 		}
 		else if (strcmp(command->operation, "clear")==0) //Comando clear
 		{
@@ -138,6 +139,18 @@ void* bashThread(void*arg)
 			if(command->parameterCount==0)
 			{
 				listCommand();
+			}
+			else
+			{
+				sprintf(stringBuffer, "numero di parametri errato in %s: 0 parametri necessari",command->operation);
+				print(ERROR, stringBuffer);
+			}
+		}
+		else if (strstr(command->operation, "rank")!=NULL) //Comando rank
+		{
+			if(command->parameterCount==0)
+			{
+				rankCommand();
 			}
 			else
 			{
@@ -875,6 +888,7 @@ void kickPlayers(char ** players,int playerNumber)
 
 void print(tags tag, char* message)
 {
+	pthread_mutex_lock(&printMutex);
 	if(testRun==0)
 	{
 		printf("\r                                \r");
@@ -886,6 +900,7 @@ void print(tags tag, char* message)
 		printFile(logFile,tag,message);
 		fflush(logFile);
 	}
+	pthread_mutex_unlock(&printMutex);
 }
 
 void deallocResources()
@@ -982,4 +997,97 @@ void* waitingThread(void* arg)
 			fflush(stdout);
 		}*/
 	}
+}
+
+void rankCommand()
+{
+	ClientData** ranking=(ClientData**)malloc(sizeof(ClientData*)*clientsMaxNumber);
+	int* done=(int*)malloc(sizeof(int)*clientsMaxNumber);
+	int i;
+	for(i=0;i<clientsMaxNumber;i++){
+		done[i]=0;
+	}
+	int max;
+	int j=0;
+	ClientData* best;
+	int maxIndex;
+	int printedBest=0;
+	while(1)
+	{
+		best=NULL;
+		max=-1000;
+		for(i=0;i<clientsMaxNumber;i++)
+		{
+			if(clientData[i]!=NULL && done[i]!=1)
+			{
+				if((clientData[i]->points)>max)
+				{
+					best=clientData[i];
+					max=clientData[i]->points;
+					maxIndex=i;
+				}
+			}
+		}
+		if(best==NULL)
+		{
+			break;
+		}
+		else
+		{
+			ranking[j]=best;
+			done[maxIndex]=1;
+			j++;
+		}
+	}
+	int clientNumber=j;
+	int terminalSize=40;
+	int d;
+	char block1[]="\u2588";
+	char block2[]="\u2592";
+	char block3[]="\u2591";
+
+
+	useconds_t useconds=10000L;
+	int n=j;
+	printf("\r");
+	for(i=0;i<n;i++)
+	{
+		if(colorRun!=0)
+		{
+			if((float)(i+1)/2<=(float)clientNumber/3.0)
+			{
+				printf(COLOR_GREEN);
+			}
+			else if((float)(i+1)/2<=(float)clientNumber*2.0/3.0)
+			{
+				printf(COLOR_YELLOW);
+			}
+			else
+			{
+				printf(COLOR_RED);
+			}
+		}
+		
+		printf("\t%s",ranking[i]->name);
+		
+		d=(int)(((float)(ranking[i]->points)/(float)winPoints)*(float)terminalSize);
+		for(j=0;j<=2*8;j+=8)
+		{
+			if(strlen(ranking[i]->name)<j)
+			{
+				printf("\t");
+			}
+			
+		}
+		for(j=0;j<d;j++)
+		{
+			printf("%s",block1);
+		}
+		if(colorRun)
+		{
+			printf(COLOR_RESET);
+		}
+		printf("\n");
+	}
+	print(DEFAULT,"");
 }

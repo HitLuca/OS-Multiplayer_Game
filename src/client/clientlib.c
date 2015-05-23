@@ -225,7 +225,11 @@ void printRanking(char** ranking,int size)
 		int terminalSize=40;
 		int p;
 		int d;
-		char block[]="\u2588";
+		char block1[]="\u2588";
+		char block2[]="\u2592";
+		char block3[]="\u2591";
+
+	
 		useconds_t useconds=10000L;
 		printf("\n\n");
 		for(i=0;i<size;i+=2)
@@ -260,7 +264,7 @@ void printRanking(char** ranking,int size)
 			}
 			for(j=0;j<d;j++)
 			{
-				printf("%s",block);
+				printf("%s",block1);
 				usleep(useconds);
 				fflush(stdout);
 			}

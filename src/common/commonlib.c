@@ -182,3 +182,45 @@ void printFile(FILE* file, tags tag, char* message)
 	}
 	fprintf(file,"\n");
 }
+
+void printTitle(int color)
+{
+	if(color!=0)
+	printf(COLOR_GREEN);
+	printf(" __  __       _ _   _       _                       \n");
+	printf("|  \\/  |     | | | (_)     | |                      \n");
+	printf("| \\  / |_   _| | |_ _ _ __ | | __ _ _   _  ___ _ __ \n");
+	printf("| |\\/| | | | | | __| | '_ \\| |/ _` | | | |/ _ | '__|\n");
+	printf("| |  | | |_| | | |_| | |_) | | (_| | |_| |  __| |   \n");
+	printf("|_|  |_|\\__,_|_|\\__|_| .__/|_|\\__,_|\\__, |\\___|_|   \n");
+	if(color!=0)
+	printf(COLOR_RED);
+	printf("             / ____| ");
+    if(color!=0)
+	printf(COLOR_GREEN);
+    printf("| |");
+    printf("             ");
+    printf("__/ |");
+    if(color!=0)
+    printf(COLOR_RED);
+    printf("          \n");
+	printf("            | |  __  ");
+	if(color!=0)
+	printf(COLOR_GREEN);
+	printf("|_|");
+	if(color!=0)
+	printf(COLOR_RED);
+	printf("_ _ __ ___  ");
+	if(color!=0)
+	printf(COLOR_GREEN);
+	printf("|___/");
+	if(color!=0)
+	printf(COLOR_RED);
+	printf("           \n");
+	printf("            | | |_ |/ _` | '_ ` _ \\ / _ \\           \n");
+	printf("            | |__| | (_| | | | | | |  __/           \n");
+	printf("             \\_____|\\__,_|_| |_| |_|\\___|           \n");
+	printf("                                                    \n");      
+	if(color!=0)         
+	printf(COLOR_RESET);                               
+}

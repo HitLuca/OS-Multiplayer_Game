@@ -20,9 +20,7 @@ int main(int argc, char** argv) //client --test --color
 	sigaction (SIGABRT, &sa, NULL);
 	sigaction (SIGQUIT, &sa, NULL);
 	sigaction (SIGINT, &sa, NULL);
-	
 
-	
 	connected=0;
 	testRun=0;
 	
@@ -137,6 +135,15 @@ int main(int argc, char** argv) //client --test --color
 	if(testRun==0)
 	{
 		printf("\e[1;1H\e[2J");
+		printTitle(colorRun);
+		if(colorRun)
+		{
+			printf("\t\t\t"COLOR_BLUE"CLIENT\n\m"COLOR_RESET);
+		}
+		else
+		{
+			printf("\t\t\tCLIENT\n\n");
+		}
 	}
 
 	

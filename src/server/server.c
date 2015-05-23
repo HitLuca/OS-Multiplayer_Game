@@ -120,8 +120,18 @@ int main(int argc,char **argv) //server --max --win --test --color
 		if(testRun==0) //Faccio printf così non lo salvo nel logfile
 		{
 			printf("\e[1;1H\e[2J");
+			printTitle(colorRun);
+			if(colorRun)
+			{
+				printf("\t\t\t"COLOR_BLUE"SERVER\n\n"COLOR_RESET);
+			}
+			else
+			{
+				printf("\t\t\tSERVER\n\n");
+			}
 			printf("Benvenuto nel terminale utente!\n");
 			printf("Digita help per una lista dei comandi\n");
+			
 		}	
 
 		//Creo il thread con la parte di autorizzazione
@@ -140,7 +150,6 @@ int main(int argc,char **argv) //server --max --win --test --color
 
 
 		//Creo il thread per i comandi utente
-		pthread_t bash;
 		pthread_create (&bash, NULL, &bashThread, NULL);
 
 		mkfifo(SERVER_ANSWER_FIFO,FILE_MODE);

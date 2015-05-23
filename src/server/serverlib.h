@@ -11,7 +11,7 @@
 #define MAX_PARAMETERS_NUMBER 6
 #define QUESTION_ID 8
 #define MAX_QUESTION_NUM 100
-#define BASH "server>"
+#define BASH ""
 
 //Struct contenente i dati dei client necessari a contattarli e operare su di essi
 typedef struct {
@@ -46,6 +46,9 @@ int testRun;
 int colorRun;
 FILE* testFile;
 FILE* logFile;
+pthread_t bash;
+pthread_mutex_t printMutex;
+int waiting;
 
 //Funzioni lato server
 void* authorizationThread(void* arg);
@@ -81,5 +84,6 @@ void kickPlayers(char ** players,int playerNumber);
 void print(tags tag, char* message);
 void* waitingThread(void* arg);
 void deallocResources();
+void rankCommand();
 
 #endif
