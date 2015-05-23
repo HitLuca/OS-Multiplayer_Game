@@ -24,6 +24,7 @@ int main (int argc, char **argv) //startGame --server/client --test --max --win 
     if (argc==1)
     {
         printf("Usage: startApplication --server/client\n");
+        printf("Usage: startApplication --help for a list of command options\n");
     }
     check_side(argc, argv);
     return 0;
@@ -38,16 +39,36 @@ void check_side(int argc, char** argv) {
     static struct option long_options[] = {
             {"server",    no_argument, 0,  's' },
             {"client",   no_argument, 0,  'c' },
+            {"help", no_argument, 0, 'h'},
         };
 
-    if ((opt = getopt_long(argc, argv,"s::c::", long_options, &long_index )) != -1) {
+    if ((opt = getopt_long(argc, argv,"s::c::h::", long_options, &long_index )) != -1) {
         switch (opt) {
-            case 's' : {
+            case 's' : { //--server
                 server_side(argc, argv);
                 break;
             }
-            case 'c' : {
+            case 'c' : { //--client
                 client_side(argc, argv);
+                break;
+            }
+            case 'h' : { //--help
+                printf("\nLista dei parametri server (--server):\n");
+                printf("\t--max:\n");
+                printf("\t\tNumero massimo di giocatori nella partita\n");
+                printf("\t--win:\n");
+                printf("\t\tPunteggio di vittoria\n");
+                printf("\t--test:\n");
+                printf("\t\tAvvio in modalità testing\n");
+                printf("\t--color:\n");
+                printf("\t\tTerminale colorato\n");
+                printf("\n");
+                printf("\nLista dei parametri client (--client):\n");
+                printf("\t--test:\n");
+                printf("\t\tAvvio in modalità testing\n");
+                printf("\t--color:\n");
+                printf("\t\tTerminale colorato\n");
+                printf("\n");
                 break;
             }
             default: {
@@ -80,10 +101,15 @@ void server_side(int argc, char** argv) {
     int long_index =1;
     while ((opt = getopt_long(argc, argv,"m:w:t::c::", server_options, &long_index )) != -1) {
         switch (opt) {
-            case 'm' :
+            case 'm' :  //--max
             {
                 iOptarg=atoi(optarg);
-                if(iOptarg==0)
+                if (iOptarg<0)
+                {
+                    printf("Errore, l'argomento di max non può essere negativo\n");
+                    exit(EXIT_FAILURE);
+                }
+                else if(iOptarg==0)
                 {
                     printf("Errore, l'argomento di max è errato\n");
                     exit(EXIT_FAILURE);
@@ -99,10 +125,15 @@ void server_side(int argc, char** argv) {
                 }
                 break;
             }
-            case 'w' :
+            case 'w' : //--win
             { 
                 iOptarg=atoi(optarg);
-                if(iOptarg==0)
+                if (iOptarg<0)
+                {
+                    printf("Errore, l'argomento di win non può essere negativo\n");
+                    exit(EXIT_FAILURE);
+                }
+                else if(iOptarg==0)
                 {
                     printf("Errore, l'argomento di win è errato\n");
                     exit(EXIT_FAILURE);
@@ -118,13 +149,13 @@ void server_side(int argc, char** argv) {
                 }
                 break;
             }
-            case 't' :
+            case 't' : //--test
             {
                 strcpy(testString, "1");
                 test=1;
                 break;
             }
-            case 'c' :
+            case 'c' : //--color
             {
                 strcpy(colorString, "1");
                 color=1;
@@ -138,7 +169,8 @@ void server_side(int argc, char** argv) {
     }
     if (test==1 && color==1)
     {
-        printf("Errore, impossibile avviare il programma in modalità test e color in contemporanea\n");
+        fprintf(stderr, "Errore, impossibile avviare il programma in modalità test e color in contemporanea\n");
+        exit(EXIT_FAILURE);
     }
     else //Trovo i giusti filepath
     {
@@ -182,10 +214,15 @@ void client_side(int argc, char** argv) {
     int long_index =1;
     while ((opt = getopt_long(argc, argv,"t:c::", client_options, &long_index )) != -1) {
         switch (opt) {
-            case 't' :
+            case 't' : //--test
             {
                 iOptarg=atoi(optarg);
-                if(iOptarg==0)
+                if(iOptarg<0)
+                {
+                    printf("Errore, l'argomento di test non può essere negativo\n");
+                    exit(EXIT_FAILURE);
+                }
+                else if(iOptarg==0)
                 {
                     printf("Errore, l'argomento di test è errato\n");
                     exit(EXIT_FAILURE);
@@ -202,7 +239,7 @@ void client_side(int argc, char** argv) {
                 test=1;
                 break;
             }
-            case 'c' :
+            case 'c' : //--color
             {
                 strcpy(colorString, "1");
                 color=1;
@@ -216,7 +253,8 @@ void client_side(int argc, char** argv) {
     }
     if(test==1 && color==1)
     {
-        printf("Errore, impossibile avviare il programma in modalità test e color in contemporanea\n");
+        fprintf(stderr, "Errore, impossibile avviare il programma in modalità test e color in contemporanea\n");
+        exit(EXIT_FAILURE);
     }
     else //Trovo i giusti filepath
     {

@@ -53,7 +53,7 @@ default:
 	@echo $(OK_COLOR)" \____ \| | | |/___"$(ERROR_COLOR)"| |   | |  _ \  "$(WARN_COLOR)" |  _ \ / ___) _ \| | ___ |/ ___|_   _)"$(NO_COLOR)
 	@echo $(OK_COLOR)" _____) ) |_| |___ "$(ERROR_COLOR)"| |___| | |_| | "$(WARN_COLOR)" | |_| | |  | |_| | | ____( (___  | |_ "$(NO_COLOR)
 	@echo $(OK_COLOR)"(______/ \__  (___/"$(ERROR_COLOR)" \_____/|  __/  "$(WARN_COLOR)" |  __/|_|   \___/| |_____)\____) \___)"$(NO_COLOR)
-	@echo $(OK_COLOR)"        (____/     "$(ERROR_COLOR)"        |_|     "$(WARN_COLOR)" |_|            (__/                   "$(NO_COLOR)
+	@echo $(OK_COLOR)"        (____/     "$(ERROR_COLOR)"        |_|     "$(WARN_COLOR)" |_|             (__/                  "$(NO_COLOR)
 	@echo
 	@echo "                               Studenti"
 	@echo "                        "$(OK_COLOR)"Simonetto "$(NO_COLOR)"| "$(OK_COLOR)"Federici"$(NO_COLOR)

@@ -33,13 +33,23 @@ int main(int argc,char** argv)
 	if(argc<2 || argc >3)
 	{
 		fprintf(stderr,"Il programma richiede 1 o 2 argomenti: <nClients> <maxPoints>\n");
-		exit(0);
+		return 0;
 	}
 	
 	clientsNumber=atoi(argv[1]);
+	if (clientsNumber<0)
+	{
+		fprintf(stderr,"clientsNumber non può essere negativo\n");
+		exit(EXIT_FAILURE);
+	}
 	if(argc==3)
 	{
 		maxPoints=atoi(argv[2]);
+		if (maxPoints<0)
+		{
+			fprintf(stderr,"maxPoints non può essere negativo\n");
+			exit(EXIT_FAILURE);
+		}
 	}
 	else
 	{
@@ -58,6 +68,7 @@ int main(int argc,char** argv)
 		questionNumber=75;
 	}
 	
+	//Path dei files di asset
 	strcpy(questionsFilePath,"assets/server/questions.test");
 	strcpy(logFilePath,"assets/server/server.log");
 	strcpy(clientFilePath,"assets/client/");
@@ -67,7 +78,7 @@ int main(int argc,char** argv)
 	if(questionsFile==NULL)
 	{
 		printf("Errore creazione file di test\n\n");
-		return 0;
+		exit(EXIT_FAILURE);
 	}
 	
 	int i;
@@ -79,7 +90,7 @@ int main(int argc,char** argv)
 	fclose(questionsFile);
 	
 	
-
+	//Inizializzo i dati
 	int* points=(int*)malloc(sizeof(int)*clientsNumber);
 	int* lastInteraction=(int*)malloc(sizeof(int)*clientsNumber);
 	int* login=(int*)malloc(sizeof(int)*clientsNumber);
@@ -147,7 +158,7 @@ int main(int argc,char** argv)
 		}
 		else
 		{
-			//se sono in modalità test intesivo allora genero il file di log torico
+			//se sono in modalità test intesivo allora genero il file di log teorico
 			if(maxPoints>0)
 			{
 				int correct=rand()%100;
@@ -230,6 +241,7 @@ int main(int argc,char** argv)
 	return 0;
 }
 
+//Funzione di generazione delle domande per il testing
 void GenerateNewQuestion(int index){
 	
 	char *newText=(char*)malloc(MAX_QUESTION_SIZE*sizeof(char));
@@ -242,12 +254,12 @@ void GenerateNewQuestion(int index){
 	int num1,num2,answ;
 	char op[2];
 	
-	if(maxPoints>0)
+	if(maxPoints>0) //Domanda casuale per make intensive_test
 	{	
 		num1=rand()%MAX_QUESTION_NUM;
 		num2=rand()%MAX_QUESTION_NUM;
 	}
-	else
+	else //Domanda semplificata per make test (1+0 1+1)
 	{	
 		num1=rand()%2;
 		num2=1;
