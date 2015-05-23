@@ -226,36 +226,49 @@ void printRanking(char** ranking,int size)
 		int p;
 		int d;
 		char block[]="\u2588";
+		useconds_t useconds=10000L;
+		printf("\n\n");
 		for(i=0;i<size;i+=2)
 		{
-			if(i/2<=clientNumber/3)
+			if(colorRun!=0)
 			{
-				printf(COLOR_GREEN);
+				if((float)(i+1)/2<=(float)clientNumber/3.0)
+				{
+					printf(COLOR_GREEN);
+				}
+				else if((float)(i+1)/2<=(float)clientNumber*2.0/3.0)
+				{
+					printf(COLOR_YELLOW);
+				}
+				else
+				{
+					printf(COLOR_RED);
+				}
 			}
-			else if(i/2<=clientNumber*2/3)
-			{
-				printf(COLOR_YELLOW);
-			}
-			else
-			{
-				printf(COLOR_RED);
-			}
+			
 			printf("\t%s",ranking[i]);
 			
 			p=atoi(ranking[i+1]);
-			d=((int)((double)p/(double)max)*(double)terminalSize);
+			d=(int)(((float)p/(float)max)*(float)terminalSize);
 			for(j=0;j<=2*8;j+=8)
 			{
 				if(strlen(ranking[i])<j)
 				{
 					printf("\t");
 				}
+				
 			}
 			for(j=0;j<d;j++)
 			{
 				printf("%s",block);
+				usleep(useconds);
+				fflush(stdout);
 			}
-			printf(COLOR_RESET"\n");
+			if(colorRun)
+			{
+				printf(COLOR_RESET);
+			}
+			printf("\n");
 		}
 	}
 }
