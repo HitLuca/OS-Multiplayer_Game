@@ -19,10 +19,10 @@ Marco
 4)accordarsi sulla struttura della relazione
 
 Luca
-------1)make intesinveTest //chiama startgame normalmente ma genera gli assets passando a makeTest solo il numero di giocatori
-------2)commentare tutto
 3)controllare che passando prametri a caso non crashi
 4)accordarsi sulla struttura della relazione
 
 DONE
 fixare il testing
+commentare tutto
+make intesinveTest
