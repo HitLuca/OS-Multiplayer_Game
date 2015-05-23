@@ -16,6 +16,16 @@ int main(int argc,char** argv) //launchClients --max --win
     char* past;
     int clientNum = atoi(argv[1]);
     int maxPoints = atoi(argv[2]);
+    if (clientNum<0)
+    {
+        fprintf(stderr, "clientNum non può essere negativo\n");
+        exit(EXIT_FAILURE);
+    }
+    if (maxPoints<0)
+    {
+        fprintf(stderr, "maxPoints non può essere negativo\n");
+        exit(EXIT_FAILURE);
+    }
     strcpy(filePath, argv[0]);
     c=filePath;
     while(1)
@@ -40,8 +50,5 @@ int main(int argc,char** argv) //launchClients --max --win
 			execl(filePath, filePath, index,"0","0",(char*)0);
 		}
 	}
-	
-	
 	return 0;
-	
 }

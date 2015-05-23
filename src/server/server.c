@@ -25,7 +25,7 @@ int main(int argc,char **argv) //server --max --win --test --color
 	if (mkfifo(SERVER_AUTHORIZATION_FIFO,FILE_MODE)!=0)
 	{
 		print(ERROR, "Server gia presente\n");
-		return 0;
+		exit(EXIT_FAILURE);
 	}
 	else
 	{
@@ -100,7 +100,7 @@ int main(int argc,char **argv) //server --max --win --test --color
 		if(logFile==NULL)
 		{
 			print(ERROR, "Errore creazione file di Log\n");
-			return 0;
+			exit(EXIT_FAILURE);
 		}
 		
 		if(testRun==1)
@@ -113,7 +113,7 @@ int main(int argc,char **argv) //server --max --win --test --color
 			if(testFile==NULL)
 			{
 				print(ERROR, "Errore apertura file di test\n");
-				return 0;
+				exit(EXIT_FAILURE);
 			}
 		}
 

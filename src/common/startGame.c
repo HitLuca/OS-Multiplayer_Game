@@ -44,15 +44,15 @@ void check_side(int argc, char** argv) {
 
     if ((opt = getopt_long(argc, argv,"s::c::h::", long_options, &long_index )) != -1) {
         switch (opt) {
-            case 's' : {
+            case 's' : { //--server
                 server_side(argc, argv);
                 break;
             }
-            case 'c' : {
+            case 'c' : { //--client
                 client_side(argc, argv);
                 break;
             }
-            case 'h' : {
+            case 'h' : { //--help
                 printf("\nLista dei parametri server (--server):\n");
                 printf("\t--max:\n");
                 printf("\t\tNumero massimo di giocatori nella partita\n");
@@ -101,7 +101,7 @@ void server_side(int argc, char** argv) {
     int long_index =1;
     while ((opt = getopt_long(argc, argv,"m:w:t::c::", server_options, &long_index )) != -1) {
         switch (opt) {
-            case 'm' :
+            case 'm' :  //--max
             {
                 iOptarg=atoi(optarg);
                 if (iOptarg<0)
@@ -125,7 +125,7 @@ void server_side(int argc, char** argv) {
                 }
                 break;
             }
-            case 'w' :
+            case 'w' : //--win
             { 
                 iOptarg=atoi(optarg);
                 if (iOptarg<0)
@@ -149,13 +149,13 @@ void server_side(int argc, char** argv) {
                 }
                 break;
             }
-            case 't' :
+            case 't' : //--test
             {
                 strcpy(testString, "1");
                 test=1;
                 break;
             }
-            case 'c' :
+            case 'c' : //--color
             {
                 strcpy(colorString, "1");
                 color=1;
@@ -169,7 +169,8 @@ void server_side(int argc, char** argv) {
     }
     if (test==1 && color==1)
     {
-        printf("Errore, impossibile avviare il programma in modalità test e color in contemporanea\n");
+        fprintf(stderr, "Errore, impossibile avviare il programma in modalità test e color in contemporanea\n");
+        exit(EXIT_FAILURE);
     }
     else //Trovo i giusti filepath
     {
@@ -213,7 +214,7 @@ void client_side(int argc, char** argv) {
     int long_index =1;
     while ((opt = getopt_long(argc, argv,"t:c::", client_options, &long_index )) != -1) {
         switch (opt) {
-            case 't' :
+            case 't' : //--test
             {
                 iOptarg=atoi(optarg);
                 if(iOptarg<0)
@@ -238,7 +239,7 @@ void client_side(int argc, char** argv) {
                 test=1;
                 break;
             }
-            case 'c' :
+            case 'c' : //--color
             {
                 strcpy(colorString, "1");
                 color=1;
@@ -252,7 +253,8 @@ void client_side(int argc, char** argv) {
     }
     if(test==1 && color==1)
     {
-        printf("Errore, impossibile avviare il programma in modalità test e color in contemporanea\n");
+        fprintf(stderr, "Errore, impossibile avviare il programma in modalità test e color in contemporanea\n");
+        exit(EXIT_FAILURE);
     }
     else //Trovo i giusti filepath
     {

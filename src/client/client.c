@@ -30,6 +30,11 @@ int main(int argc, char** argv) //client --test --color
 	if (strcmp(argv[1],"0")!=0)
 	{	
 		testRun = atoi(argv[1]);
+		if (testRun<0)
+		{
+			fprintf(stderr, "testRun non può essere negativo\n");
+			exit(EXIT_FAILURE);
+		}
 	}
 	else
 	{
@@ -65,8 +70,8 @@ int main(int argc, char** argv) //client --test --color
 	//se l'apertura non va a buon fine stampo un errore
 	if(inMessageFIFO==-1)
 	{
-	print( ERROR, "Errore di apertura FIFO\n");
-	return 0;
+		print( ERROR, "Errore di apertura FIFO\n");
+		exit(EXIT_FAILURE);
 	}
 	
 	
@@ -117,7 +122,7 @@ int main(int argc, char** argv) //client --test --color
 		if(testFile==NULL)
 		{
 			print(ERROR, "Errore apertura file di test\n");
-			return 0;
+			exit(EXIT_FAILURE);
 		}
 		int size = 20;
 		char delay[20];
@@ -187,7 +192,7 @@ int main(int argc, char** argv) //client --test --color
 			{
 				print( ERROR, "Errore di connessione al server\n");
 				deallocResources();
-				return 0;
+				exit(EXIT_FAILURE);
 			}
 			
 			print( INFO, "Connessione Riuscita");
@@ -319,7 +324,7 @@ int main(int argc, char** argv) //client --test --color
 							}
 							deallocResources();	
 							print( DEFAULT, "\n");					
-							return 0;		
+							exit(EXIT_FAILURE);	
 						}
 						else
 						{
@@ -336,13 +341,14 @@ int main(int argc, char** argv) //client --test --color
 				{
 					print( ERROR, "Errore in lettura messaggio server\n");
 					deallocResources();
-					return 0;
+					exit(EXIT_FAILURE);
 				}
 			}
 		}
 	} else {
 		deallocResources();
 		print( ERROR, "Errore richiesta autorizzazione\n");
+		exit(EXIT_FAILURE);
 	}
 	return 0;
 }
