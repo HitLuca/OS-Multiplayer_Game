@@ -150,7 +150,7 @@ int main(int argc, char** argv) //client --test --color
 		printTitle(colorRun);
 		if(colorRun)
 		{
-			printf("\t\t\t"COLOR_BLUE"CLIENT\n\m"COLOR_RESET);
+			printf("\t\t\t"COLOR_BLUE"CLIENT\n\n"COLOR_RESET);
 		}
 		else
 		{
