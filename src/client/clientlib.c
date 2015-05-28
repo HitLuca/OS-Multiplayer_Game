@@ -239,7 +239,7 @@ void printRanking(char** ranking,int size)
 		char block3[]="\u2591";
 
 	
-		useconds_t useconds=10000L;
+		useconds_t useconds=50000L;
 		printf("\n\n");
 		for(i=0;i<size;i+=2)
 		{
