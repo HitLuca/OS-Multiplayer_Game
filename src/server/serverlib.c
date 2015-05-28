@@ -776,7 +776,7 @@ void endGame(ClientData* winner)
 }
 
 //Invio della classifica ai client a fine gioco
-void broadcastRank(ClientData* best)
+/*void broadcastRank(ClientData* best)
 {
 	char notification[MAX_MESSAGE_SIZE];
 	char message[MAX_MESSAGE_SIZE];
@@ -794,10 +794,10 @@ void broadcastRank(ClientData* best)
 		}	
 	}
 	pthread_mutex_unlock(&data);
-}
+}*/
 
 //Notifica ai client della fine del gioco
-void broadcastEndGame()
+/*void broadcastEndGame()
 {
 	int i;
 	pthread_mutex_lock(&data);
@@ -808,7 +808,7 @@ void broadcastEndGame()
 		}	
 	}
 	pthread_mutex_unlock(&data);
-}
+}*/
 
 void notifyAll(char* message)
 {	
